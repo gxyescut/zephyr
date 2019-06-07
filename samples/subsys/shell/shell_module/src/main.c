@@ -108,6 +108,102 @@ static int cmd_version(const struct shell *shell, size_t argc, char **argv)
 	return 0;
 }
 
+int led_on = 0;
+
+static int cmd_led_toggle(const struct shell *shell, size_t argc, char **argv)
+{
+	*((volatile uint32_t*)0xe0006808) = 0x7;
+
+	*((volatile uint32_t*)0xe0006804) = 0x8; // address: LEDDCR0
+	*((volatile uint32_t*)0xe0006800) = 0xc8;
+	*((volatile uint32_t*)0xe0006804) = 0x9; // address: LEDDBR
+	*((volatile uint32_t*)0xe0006800) = 0xba;
+
+	*((volatile uint32_t*)0xe0006808) = 0x6;
+	*((volatile uint32_t*)0xe0006808) = 0x7;
+
+	// control breathe on/off
+	*((volatile uint32_t*)0xe0006804) = 0x5; // address: LEDDBCRR
+	*((volatile uint32_t*)0xe0006800) = 0x0;
+	*((volatile uint32_t*)0xe0006804) = 0x6; // address: LEDDBCFR
+	*((volatile uint32_t*)0xe0006800) = 0x0;
+
+	// set brightness
+	*((volatile uint32_t*)0xe0006804) = 0x2; // address: LEDDPWRG
+	*((volatile uint32_t*)0xe0006800) = 0x0;
+	*((volatile uint32_t*)0xe0006804) = 0x3; // address: LEDDPWRB - this one seems to be red
+	*((volatile uint32_t*)0xe0006800) = 0x0;
+	*((volatile uint32_t*)0xe0006804) = 0x1; // address: LEDDPWRR - it seems to be blue
+	*((volatile uint32_t*)0xe0006800) = 0xff;
+
+	if(led_on)
+	{
+		// led driver on/off time register
+		*((volatile uint32_t*)0xe0006804) = 0xa; // address: LEDDONR
+		*((volatile uint32_t*)0xe0006800) = 0x0;
+		*((volatile uint32_t*)0xe0006804) = 0xb; // address: LEDDOFR
+		*((volatile uint32_t*)0xe0006800) = 0xff;
+
+		led_on = 0;
+		shell_print(shell, "LED turned off");
+	}
+	else
+	{
+		// led driver on/off time register
+		*((volatile uint32_t*)0xe0006804) = 0xa; // address: LEDDONR
+		*((volatile uint32_t*)0xe0006800) = 0xff;
+		*((volatile uint32_t*)0xe0006804) = 0xb; // address: LEDDOFR
+		*((volatile uint32_t*)0xe0006800) = 0x0;
+
+		led_on = 1;
+		shell_print(shell, "LED turned on");
+	}
+
+	return 0;
+}
+
+static int cmd_led_breathe(const struct shell *shell, size_t argc, char **argv)
+{
+	*((volatile uint32_t*)0xe0006808) = 0x7;
+
+	*((volatile uint32_t*)0xe0006804) = 0x8; // address: LEDDCR0
+	*((volatile uint32_t*)0xe0006800) = 0xc8;
+	*((volatile uint32_t*)0xe0006804) = 0x9; // address: LEDDBR
+	*((volatile uint32_t*)0xe0006800) = 0xba;
+
+	*((volatile uint32_t*)0xe0006808) = 0x6;
+	*((volatile uint32_t*)0xe0006808) = 0x7;
+
+
+	// led driver on/off time register
+	*((volatile uint32_t*)0xe0006804) = 0xa; // address: LEDDONR
+	*((volatile uint32_t*)0xe0006800) = 0x3;
+	*((volatile uint32_t*)0xe0006804) = 0xb; // address: LEDDOFR
+	*((volatile uint32_t*)0xe0006800) = 0x3;
+
+
+	// control breathe on/off
+	*((volatile uint32_t*)0xe0006804) = 0x5; // address: LEDDBCRR
+	*((volatile uint32_t*)0xe0006800) = 0xe2;
+	*((volatile uint32_t*)0xe0006804) = 0x6; // address: LEDDBCFR
+	*((volatile uint32_t*)0xe0006800) = 0xa3;
+
+
+	// set brightness
+	*((volatile uint32_t*)0xe0006804) = 0x2; // address: LEDDPWRG
+	*((volatile uint32_t*)0xe0006800) = 0x3c;
+	*((volatile uint32_t*)0xe0006804) = 0x3; // address: LEDDPWRB
+	*((volatile uint32_t*)0xe0006800) = 0x2;
+	*((volatile uint32_t*)0xe0006804) = 0x1; // address: LEDDPWRR
+	*((volatile uint32_t*)0xe0006800) = 0x0;
+
+	led_on = 1;
+
+	shell_print(shell, "LED breathing turned on");
+
+	return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_demo,
 	SHELL_CMD(params, NULL, "Print params command.", cmd_demo_params),
 	SHELL_CMD(ping, NULL, "Ping command.", cmd_demo_ping),
@@ -116,6 +212,9 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_demo,
 SHELL_CMD_REGISTER(demo, &sub_demo, "Demo commands", NULL);
 
 SHELL_CMD_ARG_REGISTER(version, NULL, "Show kernel version", cmd_version, 1, 0);
+
+SHELL_CMD_ARG_REGISTER(led_toggle, NULL, "Toggles LED", cmd_led_toggle, 1, 0);
+SHELL_CMD_ARG_REGISTER(led_breathe, NULL, "Switched LED into blink with breathe mode", cmd_led_breathe, 1, 0);
 
 void main(void)
 {
