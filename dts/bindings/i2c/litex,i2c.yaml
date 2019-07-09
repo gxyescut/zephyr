@@ -1,0 +1,18 @@
+#
+# Copyright (c) 2019 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+title: LiteX I2C
+
+description: >
+    This is a binding for the LiteX I2C interface
+
+compatible: "litex,i2c"
+
+include: i2c-controller.yaml
+
+properties:
+    reg:
+      required: true
