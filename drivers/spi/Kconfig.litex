@@ -1,6 +1,4 @@
-# LiteX SPI (LiteSPI) configuration option
-
-# Copyright (c) 2019 Antmicro <www.antmicro.com>
+# Copyright (c) 2020 Antmicro <www.antmicro.com>
 # SPDX-License-Identifier: Apache-2.0
 
 config SPI_LITESPI
@@ -8,3 +6,18 @@ config SPI_LITESPI
 	depends on SOC_RISCV32_LITEX_VEXRISCV
 	help
 	  Enable the SPI peripherals on LiteX
+
+#if SPI_LITEX
+
+menuconfig SPI_FLASH_LITEX
+	bool "LiteX SPI flash driver"
+	depends on SOC_RISCV32_LITEX_VEXRISCV
+	select SPI_FLASH
+	select HAS_DTS_SPI	
+	default n
+	help
+	  Enable Quad SPI flash support
+
+config SPI_FLASH_LITEX_DRV_NAME
+	string "SPI flash device name"
+	default "SPI_FLASH_LITEX"

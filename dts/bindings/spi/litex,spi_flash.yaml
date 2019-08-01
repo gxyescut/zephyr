@@ -1,0 +1,18 @@
+#
+# Copyright (c) 2020 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+description: >
+    This is a binding for the LiteX Spi Flash interface
+
+include: base.yaml
+
+compatible: "litex,spiflash4x0"
+
+
+properties:
+    reg:
+      required: true
+  
