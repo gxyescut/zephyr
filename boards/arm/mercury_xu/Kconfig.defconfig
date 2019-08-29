@@ -1,0 +1,19 @@
+# Copyright (c) 2019, Antmicro
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_MERCURY_XU
+
+config BOARD
+	default "mercury_xu"
+
+config BUILD_OUTPUT_STRIPPED
+	def_bool y
+
+config FLASH_SIZE
+	int
+	default 64
+
+config FLASH_BASE_ADDRESS
+	default 0x08000000
+
+endif
