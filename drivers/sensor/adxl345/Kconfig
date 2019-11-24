@@ -1,0 +1,11 @@
+#
+# Copyright (c) 2019 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig ADXL345
+	bool "ADXL345 Three Axis High-g I2C accelerometer"
+	help
+	  Enable driver for ADXL345 Three-Axis Digital Accelerometers.
+
