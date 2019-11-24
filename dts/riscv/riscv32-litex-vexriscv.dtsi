@@ -88,7 +88,7 @@
 		};
 		i2c0: i2c@e0005000 {
 			compatible = "litex,i2c";
-			reg = <0xe0005000 0x4 0xe0005004 0x4>;
+			reg = <0xe0003000 0x4 0xe0003004 0x4>;
 			reg-names = "write", "read";
 			label = "i2c0";
 			#address-cells = <1>;
