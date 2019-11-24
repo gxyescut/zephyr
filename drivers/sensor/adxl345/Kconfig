@@ -1,0 +1,12 @@
+# Kconfig - Micropower, 3-Axis, +/-200g Digital Accelerometer
+#
+# Copyright (c) 2018 Analog Devices Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig ADXL345
+	bool "ADXL345 Three Axis High-g I2C accelerometer"
+	help
+	  Enable driver for ADXL345 Three-Axis Digital Accelerometers.
+
