@@ -83,8 +83,8 @@ static void i2c_delay(unsigned int cycles_to_wait)
 	u32_t start = k_cycle_get_32();
 
 	/* Wait until the given number of cycles have passed */
-	while (k_cycle_get_32() - start < cycles_to_wait) {
-	}
+	//while (k_cycle_get_32() - start < cycles_to_wait) {
+	//}
 }
 
 static void i2c_start(struct i2c_bitbang *context)
