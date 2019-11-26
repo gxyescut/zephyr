@@ -169,7 +169,6 @@ static int adxl345_sample_fetch(struct device *dev, enum sensor_channel chan)
 		bufx[s] = sample.x;
 		bufy[s] = sample.y;
 		bufz[s] = sample.z;
-		//printk("Samples: x: %d, y: %d, z: %d\n", sample.x, sample.y, sample.z);
 	}
 	return samples_count;
 }
