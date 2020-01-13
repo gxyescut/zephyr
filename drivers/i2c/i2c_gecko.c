@@ -11,6 +11,7 @@
 #include <em_i2c.h>
 #include <em_gpio.h>
 #include <soc.h>
+#include <stdio.h>
 
 #define LOG_LEVEL CONFIG_I2C_LOG_LEVEL
 #include <logging/log.h>
@@ -38,11 +39,18 @@ struct i2c_gecko_config {
 #else
 	u8_t loc;
 #endif
+#if defined(CONFIG_I2C_SLAVE)
+        void (*irq_config)(void);
+#endif
 };
 
 struct i2c_gecko_data {
 	struct k_sem device_sync_sem;
 	u32_t dev_config;
+#if defined(CONFIG_I2C_SLAVE)
+        struct i2c_slave_config *slave_cfg;
+#endif
+
 };
 
 void i2c_gecko_config_pins(struct device *dev,
@@ -178,10 +186,96 @@ static int i2c_gecko_init(struct device *dev)
 	return 0;
 }
 
+#if defined(CONFIG_I2C_SLAVE)
+static int i2c_gecko_slave_register(struct device *dev, struct i2c_slave_config *slave_config)
+{
+        struct i2c_gecko_config *config = DEV_CFG(dev);
+	struct i2c_gecko_data *data = DEV_DATA(dev);
+
+
+        if (!slave_config) {
+                return -EINVAL;
+        }
+
+        I2C_Enable(config->base, false);
+        config->i2cInit.master = false;
+        I2C_Init(config->base, &config->i2cInit);
+
+        I2C_SlaveAddressSet(config->base, slave_config->address);
+        I2C_SlaveAddressMaskSet(config->base, 0x7F);
+        (config->base)->CTRL |= I2C_CTRL_SLAVE;
+
+        I2C_IntClear(config->base, _I2C_IF_MASK);
+        I2C_IntEnable(config->base, I2C_IEN_ADDR | I2C_IEN_RXDATAV | I2C_IEN_BUSERR | I2C_IEN_ARBLOST | I2C_IEN_SSTOP);
+        config->irq_config();
+        data->slave_cfg = slave_config;
+
+
+        return 0;
+}
+
+static struct device DEVICE_NAME_GET(i2c_gecko_0);
+
+ISR_DIRECT_DECLARE(i2c_0_gecko_isr)
+{
+        struct device *const dev = DEVICE_GET(i2c_gecko_0);
+        struct i2c_gecko_data *data = DEV_DATA(dev);
+        const struct i2c_slave_callbacks *slave_cb = data->slave_cfg->callbacks;
+        static bool write_request;
+        uint32_t pending;
+        uint32_t rxData;
+        static uint8_t val;
+        pending = I2C0->IF;
+
+        if(pending & (I2C_IF_BUSERR | I2C_IF_ARBLOST)) {
+
+        } else {
+                if(pending & I2C_IF_ADDR) {
+                        rxData = I2C0->RXDATA;
+                        I2C0->CMD = I2C_CMD_ACK;
+                        I2C_IntClear(I2C0, I2C_IF_ADDR | I2C_IF_RXDATAV);
+
+                        if(!(rxData & I2C_MSG_READ)) {
+                                write_request = true;
+                        }
+                        printf("Addr got 0x%x \n", rxData);
+
+                } else if(pending & I2C_IF_RXDATAV) {
+                        rxData = I2C0->RXDATA;
+                        I2C0->CMD = I2C_CMD_ACK;
+                        I2C_IntClear(I2C0, I2C_IF_RXDATAV);
+                        val = rxData;
+
+                        printf("Val 0x%x \n", rxData);
+                } else if(pending & I2C_IF_SSTOP) {
+                        I2C_IntClear(I2C0, I2C_IF_SSTOP);
+                        if (write_request) {
+                                printf("Got write cmd \n");
+                                slave_cb->write_received(data->slave_cfg, val);
+                        }
+                }
+        }
+}
+#endif
+
 static const struct i2c_driver_api i2c_gecko_driver_api = {
 	.configure = i2c_gecko_configure,
 	.transfer = i2c_gecko_transfer,
+#if defined(CONFIG_I2C_SLAVE)
+        .slave_register = i2c_gecko_slave_register,
+#endif
 };
+
+#if defined(CONFIG_I2C_SLAVE)
+static void i2c_gecko_config_func_0(struct device *dev)
+{
+        IRQ_DIRECT_CONNECT(DT_INST_0_SILABS_GECKO_I2C_IRQ_0,
+                    DT_INST_0_SILABS_GECKO_I2C_IRQ_0_PRIORITY,
+                    i2c_0_gecko_isr, 0);
+
+        irq_enable(DT_INST_0_SILABS_GECKO_I2C_IRQ_0);
+}
+#endif
 
 #ifdef DT_INST_0_SILABS_GECKO_I2C
 
@@ -207,6 +301,9 @@ static struct i2c_gecko_config i2c_gecko_config_0 = {
 	.loc = DT_INST_0_SILABS_GECKO_I2C_LOCATION_SCL_0,
 #endif
 	.bitrate = DT_INST_0_SILABS_GECKO_I2C_CLOCK_FREQUENCY,
+#if defined(CONFIG_I2C_SLAVE)
+        .irq_config = i2c_gecko_config_func_0,
+#endif
 };
 
 static struct i2c_gecko_data i2c_gecko_data_0;
