@@ -436,12 +436,14 @@ DEVICE_AND_API_INIT(pl011_port_0,
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 static void pl011_irq_config_func_0(struct device *dev)
 {
+#ifdef DT_PL011_PORT0_IRQ_TX
 	IRQ_CONNECT(DT_PL011_PORT0_IRQ_TX,
 		    DT_PL011_PORT0_IRQ_PRI,
 		    pl011_isr,
 		    DEVICE_GET(pl011_port_0),
 		    0);
 	irq_enable(DT_PL011_PORT0_IRQ_TX);
+#endif
 
 	IRQ_CONNECT(DT_PL011_PORT0_IRQ_RX,
 		    DT_PL011_PORT0_IRQ_PRI,
@@ -450,12 +452,14 @@ static void pl011_irq_config_func_0(struct device *dev)
 		    0);
 	irq_enable(DT_PL011_PORT0_IRQ_RX);
 
+#ifdef DT_PL011_PORT0_IRQ_RXTIM
 	IRQ_CONNECT(DT_PL011_PORT0_IRQ_RXTIM,
 		    DT_PL011_PORT0_IRQ_PRI,
 		    pl011_isr,
 		    DEVICE_GET(pl011_port_0),
 		    0);
 	irq_enable(DT_PL011_PORT0_IRQ_RXTIM);
+#endif
 }
 #endif
 
@@ -490,12 +494,14 @@ DEVICE_AND_API_INIT(pl011_port_1,
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 static void pl011_irq_config_func_1(struct device *dev)
 {
+#ifdef DT_PL011_PORT1_IRQ_TX
 	IRQ_CONNECT(DT_PL011_PORT1_IRQ_TX,
 		    DT_PL011_PORT1_IRQ_PRI,
 		    pl011_isr,
 		    DEVICE_GET(pl011_port_1),
 		    0);
 	irq_enable(DT_PL011_PORT1_IRQ_TX);
+#endif
 
 	IRQ_CONNECT(DT_PL011_PORT1_IRQ_RX,
 		    DT_PL011_PORT1_IRQ_PRI,
@@ -504,12 +510,14 @@ static void pl011_irq_config_func_1(struct device *dev)
 		    0);
 	irq_enable(DT_PL011_PORT1_IRQ_RX);
 
+#ifdef DT_PL011_PORT1_IRQ_RXTIM
 	IRQ_CONNECT(DT_PL011_PORT1_IRQ_RXTIM,
 		    DT_PL011_PORT1_IRQ_PRI,
 		    pl011_isr,
 		    DEVICE_GET(pl011_port_1),
 		    0);
 	irq_enable(DT_PL011_PORT1_IRQ_RXTIM);
+#endif
 }
 #endif
 
