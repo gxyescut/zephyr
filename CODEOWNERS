@@ -202,6 +202,7 @@
 /dts/arc/                                 @vonhust @ruuddw @iriszzw
 /dts/arm/atmel/samr21.dtsi                @benpicco
 /dts/arm/atmel/sam*5*.dtsi                @benpicco
+/dts/arm/quicklogic/                      @wtatarski @kowalewskijan @kgugala
 /dts/arm/st/                              @erwango
 /dts/arm/ti/cc13?2*                       @bwitherspoon
 /dts/arm/ti/cc26?2*                       @bwitherspoon
@@ -222,6 +223,7 @@
 /dts/bindings/serial/ns16550.yaml         @andrewboie
 /dts/bindings/*/nordic*                   @anangl
 /dts/bindings/*/nxp*                      @MaureenHelm
+/dts/bindings/*/quicklogic*               @wtatarski @kowalewskijan @kgugala
 /dts/bindings/*/openisa*                  @MaureenHelm
 /dts/bindings/*/st*                       @erwango
 /dts/bindings/sensor/ams*                 @alexanderwachter
