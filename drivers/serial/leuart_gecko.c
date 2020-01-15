@@ -274,8 +274,8 @@ static int leuart_gecko_init(struct device *dev)
 	/* Enable CORE LE clock in order to access LE modules */
 	CMU_ClockEnable(cmuClock_CORELE, true);
 
-	/* Select LFXO for LEUARTs (and wait for it to stabilize) */
-	CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
+	/* Select LFRCO for LEUARTs (and wait for it to stabilize) */
+        CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFRCO);
 
 	/* Enable LEUART clock */
 	CMU_ClockEnable(config->clock, true);
