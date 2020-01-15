@@ -12,13 +12,11 @@
 	compatible = "video_booster", "silabs,efm32hg";
 
 	chosen {
-		zephyr,console = &leuart0;
-		zephyr,shell-uart = &leuart0;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 	};
 
- /*       aliases {
+        aliases {
                 led0 = &led0;
                 led1 = &led1;
         };
@@ -26,27 +24,20 @@
         leds {
                 compatible = "gpio-leds";
                 led0: led_0 {
-                        gpios = <&gpiob 13 0>;
+                        gpios = <&gpiob 14 0>;
                         label = "LED 0";
                 };
 
                 led1: led_1 {
-                        gpios = <&gpiob 14 0>;
+                        gpios = <&gpiob 13 0>;
                         label = "LED 1";
                 };
-        };*/
+        };
 };
 
 
 &cpu0 {
 	clock-frequency = <20000000>;
-};
-
-&leuart0 {
-        current-speed = <9600>;
-        location-rx = <GECKO_LOCATION(1) GECKO_PORT_B GECKO_PIN(14)>;
-        location-tx = <GECKO_LOCATION(1) GECKO_PORT_B GECKO_PIN(13)>;
-        status = "okay";
 };
 
 &flash0 {
@@ -69,7 +60,7 @@
 };
 
 &i2c0 {
-	location-sda = <GECKO_LOCATION(6) GECKO_PORT_E GECKO_PIN(12)>;
-	location-scl = <GECKO_LOCATION(6) GECKO_PORT_E GECKO_PIN(13)>;
+        location-sda = <GECKO_LOCATION(6) GECKO_PORT_E GECKO_PIN(12)>;
+        location-scl = <GECKO_LOCATION(6) GECKO_PORT_E GECKO_PIN(13)>;
 	status = "okay";
 };

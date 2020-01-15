@@ -15,7 +15,7 @@ config GPIO_GECKO_PORTA
 	default y
 
 config GPIO_GECKO_PORTB
-	default n
+	default y
 
 config GPIO_GECKO_PORTC
 	default y
