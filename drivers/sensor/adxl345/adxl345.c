@@ -228,8 +228,9 @@ static int adxl345_probe(struct device *dev)
 		return -EINVAL;
 	}
 
-	id = adxl345_read_reg(dev, ADXL_DEVICE_ID_REG);
-	if (id < 0)
+	rc = adxl345_read_reg(dev, ADXL_DEVICE_ID_REG);
+	id = rc;
+	if (rc < 0)
 		printk("Read ID failed\n");
 	else
 		printk("Got id: 0x%x\n", id);
