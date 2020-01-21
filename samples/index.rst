@@ -22,8 +22,9 @@ Samples and Demos
    display/*
    shields/*
    portability/*
-   gui/*
+   posix/*
    video/*
+   smp/*
 
 .. comment
    To add a new sample document, please use the template available under

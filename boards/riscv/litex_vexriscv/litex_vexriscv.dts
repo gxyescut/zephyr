@@ -14,7 +14,6 @@
 	chosen {
 		zephyr,console = &uart0;
 		zephyr,shell-uart = &uart0;
-		zephyr,timer = &timer0;
 		zephyr,sram = &ram0;
 	};
 
@@ -46,6 +45,15 @@
 	status = "okay";
 };
 
+&prbs0 {
+	status = "okay";
+};
+
 &i2c0 {
+	status = "okay";
+	label = "I2C_0";
+};
+
+&pwm0 {
 	status = "okay";
 };

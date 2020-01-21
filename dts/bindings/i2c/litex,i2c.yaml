@@ -4,10 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-title: LiteX I2C
-
-description: >
-    This is a binding for the LiteX I2C interface
+description: LiteX I2C controller
 
 compatible: "litex,i2c"
 

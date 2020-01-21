@@ -1,7 +1,6 @@
-# Kconfig.defconfig: RV32M1 SoC RISC-V core default configuration values
-#
+# RV32M1 SoC RISC-V core default configuration values
+
 # Copyright (c) 2018 Foundries.io Ltd
-#
 # SPDX-License-Identifier: Apache-2.0
 
 if SOC_OPENISA_RV32M1_RISCV32
@@ -11,7 +10,6 @@ config SOC
 
 # 32 from event unit + 32 * (1 + max enabled INTMUX channel)
 config NUM_IRQS
-	int
 	default 288 if RV32M1_INTMUX_CHANNEL_7
 	default 256 if RV32M1_INTMUX_CHANNEL_6
 	default 224 if RV32M1_INTMUX_CHANNEL_5
@@ -42,17 +40,6 @@ config RISCV_SOC_INTERRUPT_INIT
 # default. Use the WDOG_INIT hook for doing that.
 config WDOG_INIT
 	def_bool y
-
-# The event unit looks for vector tables at the end of each core's
-# flash space. These vector tables are not relocatable.
-config RISCV_RV32M1_VECTOR_BASE_ADDR
-	hex
-	default 0x000FFF00 if SOC_OPENISA_RV32M1_RI5CY
-	default 0x0103FF00 if SOC_OPENISA_RV32M1_ZERO_RISCY
-
-config RISCV_RV32M1_VECTOR_SIZE
-	hex
-	default 0x100
 
 config SYS_CLOCK_HW_CYCLES_PER_SEC
 	default 8000000
@@ -162,6 +149,20 @@ config I2C_RV32M1_LPI2C
 
 endif # I2C
 
+if SPI
+
+config SPI_RV32M1_LPSPI
+	default y
+
+endif # SPI
+
+if PWM
+
+config PWM_RV32M1_TPM
+	default y
+
+endif # PWM
+
 if FLASH
 
 config SOC_FLASH_RV32M1
@@ -174,5 +175,12 @@ config FLASH_BASE_ADDRESS
 	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_FLASH))
 
 endif # FLASH
+
+if ENTROPY_GENERATOR
+
+config ENTROPY_RV32M1_TRNG
+	default y
+
+endif # ENTROPY_GENERATOR
 
 endif # SOC_OPENISA_RV32M1_RISCV32

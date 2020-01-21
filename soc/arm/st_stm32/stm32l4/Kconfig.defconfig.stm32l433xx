@@ -1,9 +1,7 @@
-# Kconfig - ST Microelectronics STM32L433XX MCU
-#
+# ST Microelectronics STM32L433XX MCU
+
 # Copyright (c) 2018 David Lamparter
-#
 # SPDX-License-Identifier: Apache-2.0
-#
 
 if SOC_STM32L433XX
 
@@ -11,7 +9,6 @@ config SOC
 	default "stm32l433xx"
 
 config NUM_IRQS
-	int
 	default 83
 
 if GPIO_STM32

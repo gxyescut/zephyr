@@ -406,15 +406,12 @@ int zsock_accept_ctx(struct net_context *parent, struct sockaddr *addr,
 {
 	s32_t timeout = K_FOREVER;
 	struct net_context *ctx;
+	struct net_pkt *last_pkt;
 	int fd;
 
 	fd = z_reserve_fd();
 	if (fd < 0) {
 		return -1;
-	}
-
-	if (net_context_get_ip_proto(parent) == IPPROTO_TCP) {
-		net_context_set_state(parent, NET_CONTEXT_LISTENING);
 	}
 
 	if (sock_is_nonblock(parent)) {
@@ -426,6 +423,23 @@ int zsock_accept_ctx(struct net_context *parent, struct sockaddr *addr,
 		errno = EAGAIN;
 		return -1;
 	}
+
+	/* Check if the connection is already disconnected */
+	last_pkt = k_fifo_peek_tail(&ctx->recv_q);
+	if (last_pkt) {
+		if (net_pkt_eof(last_pkt)) {
+			sock_set_eof(ctx);
+			errno = ECONNABORTED;
+			return -1;
+		}
+	}
+
+	if (net_context_is_closing(ctx)) {
+		errno = ECONNABORTED;
+		return -1;
+	}
+
+	net_context_set_accepting(ctx, false);
 
 #ifdef CONFIG_USERSPACE
 	z_object_recycle(ctx);
@@ -630,7 +644,9 @@ static int sock_get_pkt_src_addr(struct net_pkt *pkt,
 
 		ipv4_hdr = (struct net_ipv4_hdr *)net_pkt_get_data(
 							pkt, &ipv4_access);
-		if (!ipv4_hdr || net_pkt_acknowledge_data(pkt, &ipv4_access)) {
+		if (!ipv4_hdr ||
+		    net_pkt_acknowledge_data(pkt, &ipv4_access) ||
+		    net_pkt_skip(pkt, net_pkt_ipv4_opts_len(pkt))) {
 			ret = -ENOBUFS;
 			goto error;
 		}
@@ -964,6 +980,8 @@ static int zsock_poll_prepare_ctx(struct net_context *ctx,
 				  struct k_poll_event **pev,
 				  struct k_poll_event *pev_end)
 {
+	int ret = 0;
+
 	if (pfd->events & ZSOCK_POLLIN) {
 		if (*pev == pev_end) {
 			errno = ENOMEM;
@@ -977,6 +995,11 @@ static int zsock_poll_prepare_ctx(struct net_context *ctx,
 		(*pev)++;
 	}
 
+	if (pfd->events & ZSOCK_POLLOUT) {
+		errno = EALREADY;
+		ret = -1;
+	}
+
 	/* If socket is already in EOF, it can be reported
 	 * immediately, so we tell poll() to short-circuit wait.
 	 */
@@ -985,7 +1008,7 @@ static int zsock_poll_prepare_ctx(struct net_context *ctx,
 		return -1;
 	}
 
-	return 0;
+	return ret;
 }
 
 static int zsock_poll_update_ctx(struct net_context *ctx,

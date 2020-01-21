@@ -47,6 +47,9 @@ extern "C" {
 /** unexpected error */
 #define CAN_TX_UNKNOWN  (-5)
 
+/** invalid parameter */
+#define CAN_TX_EINVAL   (-22)
+
 /** attach_* failed because there is no unused filter left*/
 #define CAN_NO_FREE_FILTER (-1)
 
@@ -539,7 +542,8 @@ static inline
 enum can_state z_impl_can_get_state(struct device *dev,
 				    struct can_bus_err_cnt *err_cnt)
 {
-	const struct can_driver_api *api = dev->driver_api;
+	const struct can_driver_api *api =
+		(const struct can_driver_api *)dev->driver_api;
 
 	return api->get_state(dev, err_cnt);
 }
@@ -560,7 +564,8 @@ __syscall int can_recover(struct device *dev, s32_t timeout);
 
 static inline int z_impl_can_recover(struct device *dev, s32_t timeout)
 {
-	const struct can_driver_api *api = dev->driver_api;
+	const struct can_driver_api *api =
+		(const struct can_driver_api *)dev->driver_api;
 
 	return api->recover(dev, timeout);
 }
@@ -576,7 +581,7 @@ static inline int z_impl_can_recover(struct device *dev, s32_t timeout)
  * @brief Register an ISR callback for state change interrupt
  *
  * Only one callback can be registered per controller.
- * Calling this function again, overrides the previos call.
+ * Calling this function again, overrides the previous call.
  *
  * @param dev Pointer to the device structure for the driver instance.
  * @param isr Pointer to ISR
@@ -585,7 +590,8 @@ static inline
 void can_register_state_change_isr(struct device *dev,
 				   can_state_change_isr_t isr)
 {
-	const struct can_driver_api *api = dev->driver_api;
+	const struct can_driver_api *api =
+		(const struct can_driver_api *)dev->driver_api;
 
 	return api->register_state_change_isr(dev, isr);
 }

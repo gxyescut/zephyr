@@ -64,12 +64,12 @@ void z_sched_ipi(void);
 
 static inline void z_pend_curr_unlocked(_wait_q_t *wait_q, s32_t timeout)
 {
-	(void) z_pend_curr_irqlock(z_arch_irq_lock(), wait_q, timeout);
+	(void) z_pend_curr_irqlock(arch_irq_lock(), wait_q, timeout);
 }
 
 static inline void z_reschedule_unlocked(void)
 {
-	(void) z_reschedule_irqlock(z_arch_irq_lock());
+	(void) z_reschedule_irqlock(arch_irq_lock());
 }
 
 /* find which one is the next thread to run */
@@ -140,11 +140,13 @@ static inline bool z_is_thread_queued(struct k_thread *thread)
 static inline void z_mark_thread_as_suspended(struct k_thread *thread)
 {
 	thread->base.thread_state |= _THREAD_SUSPENDED;
+	sys_trace_thread_suspend(thread);
 }
 
 static inline void z_mark_thread_as_not_suspended(struct k_thread *thread)
 {
 	thread->base.thread_state &= ~_THREAD_SUSPENDED;
+	sys_trace_thread_resume(thread);
 }
 
 static inline void z_mark_thread_as_started(struct k_thread *thread)
@@ -248,24 +250,23 @@ static ALWAYS_INLINE void z_ready_thread(struct k_thread *thread)
 {
 	if (z_is_thread_ready(thread)) {
 		z_add_thread_to_ready_q(thread);
+		sys_trace_thread_ready(thread);
 	}
-
-	sys_trace_thread_ready(thread);
 }
 
 static inline void _ready_one_thread(_wait_q_t *wq)
 {
-	struct k_thread *th = z_unpend_first_thread(wq);
+	struct k_thread *thread = z_unpend_first_thread(wq);
 
-	if (th != NULL) {
-		z_ready_thread(th);
+	if (thread != NULL) {
+		z_ready_thread(thread);
 	}
 }
 
 static inline void z_sched_lock(void)
 {
 #ifdef CONFIG_PREEMPT_ENABLED
-	__ASSERT(!z_arch_is_in_isr(), "");
+	__ASSERT(!arch_is_in_isr(), "");
 	__ASSERT(_current->base.sched_locked != 1, "");
 
 	--_current->base.sched_locked;
@@ -280,7 +281,7 @@ static inline void z_sched_lock(void)
 static ALWAYS_INLINE void z_sched_unlock_no_reschedule(void)
 {
 #ifdef CONFIG_PREEMPT_ENABLED
-	__ASSERT(!z_arch_is_in_isr(), "");
+	__ASSERT(!arch_is_in_isr(), "");
 	__ASSERT(_current->base.sched_locked != 0, "");
 
 	compiler_barrier();

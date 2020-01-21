@@ -37,9 +37,6 @@
  * order when programming the MMU.
  */
 
-#define _LINKER
-
-#define _ASMLANGUAGE
 #include <linker/linker-defs.h>
 #include <offsets.h>
 #include <sys/util.h>
@@ -88,7 +85,12 @@ SECTIONS
 	_image_text_start = PHYS_LOAD_ADDR;
 	SECTION_PROLOGUE(_TEXT_SECTION_NAME,,)
 	{
-	. = CONFIG_TEXT_SECTION_OFFSET;
+
+/* Located in generated directory. This file is populated by the
+ * zephyr_linker_sources() Cmake function.
+ */
+#include <snippets-text-start.ld>
+
 	*(.text_start)
 	*(".text_start.*")
 	*(.text)

@@ -6,7 +6,7 @@
 
 #include <ztest.h>
 #include <arch/cpu.h>
-#include <arch/arm/cortex_m/cmsis.h>
+#include <arch/arm/aarch32/cortex_m/cmsis.h>
 
 static volatile int test_flag;
 static volatile int expected_reason = -1;
@@ -87,7 +87,7 @@ void test_arm_interrupt(void)
 
 	TC_PRINT("Available IRQ line: %u\n", i);
 
-	z_arch_irq_connect_dynamic(i, 0 /* highest priority */,
+	arch_irq_connect_dynamic(i, 0 /* highest priority */,
 		arm_isr_handler,
 		NULL,
 		0);

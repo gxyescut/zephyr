@@ -1,9 +1,7 @@
-# Kconfig - Subsystem configuration options
-#
+# Subsystem configuration options
+
 # Copyright (c) 2016-2017 Intel Corporation
-#
 # SPDX-License-Identifier: Apache-2.0
-#
 
 source "subsys/bluetooth/Kconfig"
 
@@ -40,3 +38,5 @@ source "subsys/testsuite/Kconfig"
 source "subsys/fb/Kconfig"
 
 source "subsys/jwt/Kconfig"
+
+source "subsys/canbus/Kconfig"

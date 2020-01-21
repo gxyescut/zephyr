@@ -57,9 +57,6 @@ const char *devices[] = {
 #ifdef CONFIG_COUNTER_IMX_EPIT_2
 	DT_COUNTER_IMX_EPIT_2_LABEL,
 #endif
-#ifdef DT_RTC_MCUX_0_NAME
-	DT_RTC_MCUX_0_NAME,
-#endif
 #ifdef DT_INST_0_ARM_CMSDK_TIMER_LABEL
 	DT_INST_0_ARM_CMSDK_TIMER_LABEL,
 #endif
@@ -130,15 +127,19 @@ static bool set_top_value_capable(const char *dev_name)
 	struct counter_top_cfg cfg = {
 		.ticks = counter_get_top_value(dev) - 1
 	};
+	int err;
 
-	int err = counter_set_top_value(dev, &cfg);
-
+	err = counter_set_top_value(dev, &cfg);
 	if (err == -ENOTSUP) {
 		return false;
 	}
 
 	cfg.ticks++;
-	counter_set_top_value(dev, &cfg);
+	err = counter_set_top_value(dev, &cfg);
+	if (err == -ENOTSUP) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -171,7 +172,13 @@ void test_set_top_value_with_alarm_instance(const char *dev_name)
 	k_busy_wait(5000);
 
 	cnt = counter_read(dev);
-	zassert_true(cnt > 0, "%s: Counter should progress", dev_name);
+	if (counter_is_counting_up(dev)) {
+		err = (cnt > 0) ? 0 : 1;
+	} else {
+		tmp_top_cnt = counter_get_top_value(dev);
+		err = (cnt < tmp_top_cnt) ? 0 : 1;
+	}
+	zassert_true(err == 0, "%s: Counter should progress", dev_name);
 
 	err = counter_set_top_value(dev, &top_cfg);
 	zassert_equal(0, err, "%s: Counter failed to set top value (err: %d)",
@@ -196,9 +203,15 @@ static void alarm_handler(struct device *dev, u8_t chan_id, u32_t counter,
 {
 	u32_t now = counter_read(dev);
 
-	zassert_true(now >= counter,
-			"%s: Alarm (%d) too early now:%d.",
+	if (counter_is_counting_up(dev)) {
+		zassert_true(now >= counter,
+			"%s: Alarm (%d) too early now: %d (counting up).",
 			dev->config->name, counter, now);
+	} else {
+		zassert_true(now <= counter,
+			"%s: Alarm (%d) too early now: %d (counting down).",
+			dev->config->name, counter, now);
+	}
 
 	if (user_data) {
 		zassert_true(&alarm_cfg == user_data,
@@ -788,6 +801,12 @@ void test_cancelled_alarm_does_not_expire(void)
 
 void test_main(void)
 {
+	/* Give required clocks some time to stabilize. In particular, nRF SoCs
+	 * need such delay for the Xtal LF clock source to start and for this
+	 * test to use the correct timing.
+	 */
+	k_busy_wait(USEC_PER_MSEC * 300);
+
 	ztest_test_suite(test_counter,
 		ztest_unit_test(test_set_top_value_with_alarm),
 		ztest_unit_test(test_single_shot_alarm_notop),

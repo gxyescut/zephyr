@@ -1,11 +1,10 @@
-#
 # Copyright (c) 2016 Nordic Semiconductor ASA
-#
 # SPDX-License-Identifier: Apache-2.0
-#
 
 config HAS_SEGGER_RTT
 	bool
+	help
+	  Indicates that the platform supports SEGGER J-Link RTT.
 
 config USE_SEGGER_RTT
 	bool "Enable SEGGER RTT libraries."
@@ -19,6 +18,7 @@ if USE_SEGGER_RTT
 
 config SEGGER_SYSTEMVIEW
 	bool "Segger SystemView support"
+	select CONSOLE
 	select RTT_CONSOLE
 	select THREAD_MONITOR
 	select THREAD_STACK_INFO

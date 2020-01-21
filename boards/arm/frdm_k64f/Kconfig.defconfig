@@ -1,9 +1,7 @@
-# Kconfig - FRDM-K64F board
-#
+# FRDM-K64F board
+
 # Copyright (c) 2016, Freescale Semiconductor, Inc.
-#
 # SPDX-License-Identifier: Apache-2.0
-#
 
 if BOARD_FRDM_K64F
 
@@ -83,6 +81,13 @@ config ADC_1
 	default y
 
 endif # ADC
+
+if SENSOR
+
+config TEMP_KINETIS
+	default y
+
+endif # SENSOR
 
 if PWM_MCUX_FTM
 

@@ -1,9 +1,7 @@
-# SPDX-License-Identifier: Apache-2.0
-#
+# TI SimpleLink MSP432P401R SoC
+
 # Copyright (c) 2017, Linaro Ltd
-#
-# Kconfig.defconfig.msp432p401r- TI SimpleLink MSP432P401R SoC
-#
+# SPDX-License-Identifier: Apache-2.0
 
 if SOC_MSP432P401R
 
@@ -14,7 +12,6 @@ config SYS_CLOCK_HW_CYCLES_PER_SEC
 	default 48000000
 
 config NUM_IRQS
-	int
 	default 64
 
 endif # SOC_MSP432P401R

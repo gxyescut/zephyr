@@ -18,6 +18,8 @@
 #define PDU_AC_LL_HEADER_SIZE  (offsetof(struct pdu_adv, payload))
 /* Advertisement channel maximum PDU size */
 #define PDU_AC_SIZE_MAX        (PDU_AC_LL_HEADER_SIZE + PDU_AC_PAYLOAD_SIZE_MAX)
+/* Advertisement channel Access Address */
+#define PDU_AC_ACCESS_ADDR     0x8e89bed6
 
 #define ACCESS_ADDR_SIZE        4
 #define ADVA_SIZE               6
@@ -527,9 +529,11 @@ struct pdu_data {
 
 	u8_t len;
 
+#if !defined(CONFIG_SOC_OPENISA_RV32M1_RISCV32)
 #if !defined(CONFIG_BT_CTLR_DATA_LENGTH_CLEAR)
 	u8_t resv:8; /* TODO: remove nRF specific code */
 #endif /* !CONFIG_BT_CTLR_DATA_LENGTH_CLEAR */
+#endif /* !CONFIG_SOC_OPENISA_RV32M1_RISCV32 */
 
 	union {
 		struct pdu_data_llctrl llctrl;

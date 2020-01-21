@@ -56,16 +56,13 @@ arduino_serial: &usart2 {};
 
 &usart2 {
 	current-speed = <115200>;
-	pinctrl-names = "default";
 	status = "okay";
 };
 
 &usart6 {
 	current-speed = <115200>;
-	pinctrl-names = "default";
 	status = "okay";
 };
-
 
 &i2c1 {
 	status = "okay";

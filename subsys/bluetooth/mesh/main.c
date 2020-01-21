@@ -83,9 +83,29 @@ int bt_mesh_provision(const u8_t net_key[16], u16_t net_idx,
 		bt_mesh_store_iv(false);
 	}
 
-	bt_mesh_net_start();
+	bt_mesh_start();
 
 	return 0;
+}
+
+int bt_mesh_provision_adv(const u8_t uuid[16], u16_t net_idx, u16_t addr,
+			  u8_t attention_duration)
+{
+	if (!atomic_test_bit(bt_mesh.flags, BT_MESH_VALID)) {
+		return -EINVAL;
+	}
+
+	if (bt_mesh_subnet_get(net_idx) == NULL) {
+		return -EINVAL;
+	}
+
+	if (IS_ENABLED(CONFIG_BT_MESH_PROVISIONER) &&
+	    IS_ENABLED(CONFIG_BT_MESH_PB_ADV)) {
+		return bt_mesh_pb_adv_open(uuid, net_idx, addr,
+					   attention_duration);
+	}
+
+	return -ENOTSUP;
 }
 
 void bt_mesh_reset(void)
@@ -147,7 +167,7 @@ int bt_mesh_prov_enable(bt_mesh_prov_bearer_t bearers)
 
 	if (IS_ENABLED(CONFIG_BT_DEBUG)) {
 		const struct bt_mesh_prov *prov = bt_mesh_prov_get();
-		struct bt_uuid_128 uuid = { .uuid.type = BT_UUID_TYPE_128 };
+		struct bt_uuid_128 uuid = { .uuid = { BT_UUID_TYPE_128 } };
 
 		memcpy(uuid.val, prov->uuid, 16);
 		BT_INFO("Device UUID: %s", bt_uuid_str(&uuid.uuid));
@@ -303,6 +323,22 @@ int bt_mesh_init(const struct bt_mesh_prov *prov,
 	if (IS_ENABLED(CONFIG_BT_SETTINGS)) {
 		bt_mesh_settings_init();
 	}
+
+	return 0;
+}
+
+static void model_start(struct bt_mesh_model *mod, struct bt_mesh_elem *elem,
+			bool vnd, bool primary, void *user_data)
+{
+	if (mod->cb && mod->cb->start) {
+		mod->cb->start(mod);
+	}
+}
+
+int bt_mesh_start(void)
+{
+	bt_mesh_net_start();
+	bt_mesh_model_foreach(model_start, NULL);
 
 	return 0;
 }
