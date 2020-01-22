@@ -133,4 +133,10 @@ struct x86_ssf {
 				 (void (*)(const void *))isr_p,		\
 				 isr_param_p, flags_p)
 
+#define ARCH_IRQ_REPLACE_ISR(irq, new_func) \
+({ \
+	Z_ISR_REPLACE(irq, new_func); \
+})
+
+
 #endif /* ZEPHYR_INCLUDE_ARCH_X86_INTEL64_ARCH_H_ */
