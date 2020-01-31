@@ -8,3 +8,8 @@ config SOC_EOS_S3_GPIO
        bool
        help
          Set if the General Purpose Input/Output (GPIO) HAL module is used.
+
+config SOC_EOS_S3_FPGA
+       bool
+       help
+         Enable on chip FPGA
