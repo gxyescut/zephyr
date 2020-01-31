@@ -4,3 +4,4 @@
 zephyr_library_include_directories(${ZEPHYR_BASE}/drivers)
 zephyr_library_sources(board.c)
 zephyr_include_directories(.)
+zephyr_include_directories(FPGA_HAL)
