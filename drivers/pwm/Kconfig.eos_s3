@@ -1,0 +1,23 @@
+#
+# Copyright (c) 2020 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig PWM_GEN_EOS_S3
+	bool "EOS S3 PWM_GEN driver (FPGA IP core)"
+	depends on SOC_EOS_S3
+	depends on HAS_DTS
+	select SOC_EOS_S3_FPGA
+	help
+	  Enable support for EOS S3 PWM_GEN driver
+
+if PWM_EOS_S3
+
+config PWM_GEN_EOS_S3_INIT_PRIORITY
+	int "Init priority"
+	default 70
+	help
+	  PWM device driver initialization priority.
+
+endif # PWM_GEN_EOS_S3

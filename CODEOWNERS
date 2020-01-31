@@ -163,6 +163,7 @@
 /drivers/pinmux/stm32/                    @rsalveti @idlethread
 /drivers/pinmux/*hsdk*                    @iriszzw
 /drivers/pwm/*litex*                      @mateusz-holenko @kgugala @pgielda
+/drivers/pwm/pwm_gen_eos_s3.c             @kowalewskijan @kgugala
 /drivers/sensor/                          @MaureenHelm
 /drivers/sensor/ams_iAQcore/              @alexanderwachter
 /drivers/sensor/ens210/                   @alexanderwachter
