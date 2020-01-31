@@ -1,0 +1,22 @@
+description: QuickLogic FPGA IP core PWM
+
+compatible: "quicklogic,eos-s3-pwm-gen"
+
+include: [pwm-controller.yaml, base.yaml]
+
+properties:
+    reg:
+      required: true
+
+    # Divider set to Sys_Clk0 or Sys_Clk1 used to generate Wishbone clock.
+    # Wishbone clock cannot exceed 10MHz. Divider for FPGA clock domain
+    # is set in soc.c
+    divider:
+      type: int
+      required: true
+
+    "#pwm-cells":
+      const: 1
+
+pwm-cells:
+  - channel
