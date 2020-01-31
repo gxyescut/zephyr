@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2020 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	pwm: pwm@40020000 {
+		compatible = "quicklogic,eos-s3-pwm-gen";
+		reg = <0x40020000 0x800>;
+		#pwm-cells = <1>;
+		label = "PWM";
+		divider = <8>;
+	};
+};
+

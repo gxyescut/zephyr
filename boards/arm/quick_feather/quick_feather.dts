@@ -6,6 +6,7 @@
 
 /dts-v1/;
 #include <quicklogic/quicklogic_eos_s3.dtsi>
+#include "quick_feather.dtsi"
 
 / {
 	model = "QuickLogic Quick Feather board";
@@ -62,5 +63,9 @@
 };
 
 &spi {
+	status = "okay";
+};
+
+&pwm {
 	status = "okay";
 };
