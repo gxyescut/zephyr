@@ -3,3 +3,8 @@
 
 config SOC_EOS_S3
 	bool
+
+config SOC_EOS_S3_GPIO
+       bool
+       help
+         Set if the General Purpose Input/Output (GPIO) HAL module is used.
