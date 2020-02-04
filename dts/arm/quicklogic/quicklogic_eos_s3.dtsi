@@ -6,6 +6,7 @@
 
 #include <mem.h>
 #include <arm/armv7-m.dtsi>
+#include <dt-bindings/gpio/gpio.h>
 
 / {
 	cpus {
@@ -41,6 +42,16 @@
 			clock-frequency = <5120000>;
 			current-speed = <115200>;
 			label = "UART_0";
+		};
+
+		gpio: gpio {
+			compatible = "quicklogic,eos-s3-gpio";
+			label = "GPIO";
+			interrupts = <5 2>;
+			interrupt-names = "gpio_irq";
+			#gpio-cells = <2>;
+			gpio-controller;
+			ngpios = <8>;
 		};
 	};
 };
