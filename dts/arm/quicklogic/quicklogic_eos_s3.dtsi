@@ -53,6 +53,16 @@
 			gpio-controller;
 			ngpios = <8>;
 		};
+
+		spi: spi@40007000 {
+			compatible = "quicklogic,eos-s3-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x40007000 0x400>;
+			interrupts = <16 0>;
+			label = "SPI";
+			status = "disabled";
+		};
 	};
 };
 
