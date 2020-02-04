@@ -18,6 +18,38 @@
 		zephyr,uart-pipe = &uart0;
 	};
 
+	aliases {
+		led0 = &led0;
+		led1 = &led1;
+		led2 = &led2;
+		sw0 = &button0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led0: led_0 {
+			gpios = <&gpio 18 0>;
+			label = "LED 0";
+		};
+
+		led1: led_1 {
+			gpios = <&gpio 21 0>;
+			label = "LED 1";
+		};
+
+		led2: led_2 {
+			gpios = <&gpio 22 0>;
+			label = "LED 2";
+		};
+	};
+
+	buttons {
+		compatible = "gpio-keys";
+		button0: button_0 {
+			gpios = <&gpio 6 (GPIO_INT_ACTIVE_LOW | GPIO_PUD_PULL_UP) >;
+			label = "User Push Button 0";
+		};
+	};
 };
 
 &cpu0 {
