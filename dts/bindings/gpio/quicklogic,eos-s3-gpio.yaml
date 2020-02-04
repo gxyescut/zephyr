@@ -1,0 +1,19 @@
+description: EOS S3 GPIO node
+
+compatible: "quicklogic,eos-s3-gpio"
+
+include: [gpio-controller.yaml, base.yaml]
+
+properties:
+    label:
+      required: true
+
+    interrupts:
+      required: true
+
+    "#gpio-cells":
+      const: 2
+
+gpio-cells:
+  - pin
+  - flags
