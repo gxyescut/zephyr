@@ -35,4 +35,11 @@ config GPIO_EOS_S3
 
 endif # GPIO
 
+if SPI
+
+config SPI_EOS_S3
+	default y
+
+endif # SPI
+
 endif # SOC_EOS_S3
