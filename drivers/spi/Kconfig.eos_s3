@@ -1,0 +1,11 @@
+# QuickLogic EOS S3 SPI
+
+# Copyright (c) 2020 Antmicro <www.antmicro.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config SPI_EOS_S3
+	bool "QuickLogic EOS S3 SPI driver"
+	default y
+	depends on SOC_EOS_S3
+	help
+	  Enable support for the EOS S3 SPI driver.
