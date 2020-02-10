@@ -30,6 +30,8 @@
 /* The FPGA bitstream is stored in the lower 536 sectors of the flash. */
 #define FLASH_TEST_REGION_OFFSET \
 	DT_REG_SIZE(DT_NODE_BY_FIXED_PARTITION_LABEL(fpga_bitstream))
+#elif defined(CONFIG_BOARD_QUICK_FEATHER)
+#define FLASH_TEST_REGION_OFFSET 0x100000
 #else
 #define FLASH_TEST_REGION_OFFSET 0xff000
 #endif

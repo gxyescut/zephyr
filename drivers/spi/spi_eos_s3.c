@@ -245,9 +245,9 @@ static void spi_eos_s3_xfer(const struct device *dev)
 
 /* API Functions */
 static int spi_eos_s3_transceive(const struct device *dev,
-			  	 const struct spi_config *config,
-			  	 const struct spi_buf_set *tx_bufs,
-			  	 const struct spi_buf_set *rx_bufs)
+				 const struct spi_config *config,
+				 const struct spi_buf_set *tx_bufs,
+				 const struct spi_buf_set *rx_bufs)
 {
 	const struct spi_eos_s3_config *cfg = dev->config;
 	struct spi_eos_s3_data *data = DEV_DATA(dev);
