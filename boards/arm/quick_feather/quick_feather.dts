@@ -22,6 +22,12 @@
 		led0 = &led0;
 		led1 = &led1;
 		led2 = &led2;
+		pwm-led0 = &pwm_led0;
+		pwm-led1 = &pwm_led1;
+		pwm-led2 = &pwm_led2;
+		red-pwm-led = &pwm_led0;
+		green-pwm-led = &pwm_led1;
+		blue-pwm-led = &pwm_led2;
 		sw0 = &button0;
 	};
 
@@ -40,6 +46,22 @@
 		led2: led_2 {
 			gpios = <&gpio 22 0>;
 			label = "LED 2";
+		};
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+		pwm_led0: pwm_led_0 {
+			pwms = <&pwm 0>;
+			label = "Red PWM LED 0";
+		};
+		pwm_led1: pwm_led_1 {
+			pwms = <&pwm 1>;
+			label = "Green PWM LED 1";
+		};
+		pwm_led2: pwm_led_2 {
+			pwms = <&pwm 2>;
+			label = "Blue PWM LED 2";
 		};
 	};
 
