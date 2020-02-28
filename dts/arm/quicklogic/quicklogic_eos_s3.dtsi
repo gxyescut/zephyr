@@ -34,6 +34,13 @@
 	};
 
 	soc {
+		uartLitex: serial@40020800  {
+			compatible = "litex,uart0";
+			interrupts = <7 3>;
+			reg = <0x40020800 0x18>;
+			label = "UART_LITEX";
+		};
+
 		uart0: uart@40010000 {
 			compatible = "arm,pl011";
 			reg = <0x40010000 DT_SIZE_K(4)>;
