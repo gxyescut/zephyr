@@ -13,3 +13,14 @@ properties:
 
     reg:
       required: true
+
+    prescaler:
+      default: 1
+      type: int
+      required: false
+
+    "#pwm-cells":
+      const: 1
+
+pwm-cells:
+  - channel
