@@ -25,6 +25,11 @@ static int eos_s3_board_init(struct device *arg)
 	eos_s3_io_mux(SPI_SS1_PAD, SPI_SS1_PAD_CFG);
 #endif
 
+#ifdef CONFIG_UART_LITEUART
+	eos_s3_io_mux(FB_UART_TX_PAD, FB_UART_TX_PAD_CFG);
+	eos_s3_io_mux(FB_UART_RX_PAD, FB_UART_RX_PAD_CFG);
+#endif
+
 	return 0;
 }
 

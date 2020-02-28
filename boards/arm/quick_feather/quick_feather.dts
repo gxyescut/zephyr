@@ -83,6 +83,11 @@
 	current-speed = <115200>;
 };
 
+&uartLitex {
+	status = "okay";
+	current-speed = <115200>;
+};
+
 &spi {
 	status = "okay";
 
