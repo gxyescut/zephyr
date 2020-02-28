@@ -21,6 +21,7 @@ struct pwm_litex_cfg {
 	volatile u32_t *reg_en;
 	volatile u32_t *reg_width;
 	volatile u32_t *reg_period;
+	u32_t prescaler;
 };
 
 #define GET_PWM_CFG(dev)				       \
@@ -65,11 +66,13 @@ int pwm_litex_pin_set(struct device *dev, u32_t pwm, u32_t period_cycles,
 
 int pwm_litex_get_cycles_per_sec(struct device *dev, u32_t pwm, u64_t *cycles)
 {
+	const struct pwm_litex_cfg *cfg = GET_PWM_CFG(dev);
+
 	if (pwm >= NUMBER_OF_CHANNELS) {
 		return -EINVAL;
 	}
 
-	*cycles = sys_clock_hw_cycles_per_sec();
+	*cycles = sys_clock_hw_cycles_per_sec() / cfg->prescaler;
 	return 0;
 }
 
@@ -99,6 +102,7 @@ static const struct pwm_driver_api pwm_litex_driver_api = {
 		  (volatile u32_t *)                                           \
 			DT_INST_##n##_LITEX_PWM_PERIOD_BASE_ADDRESS,           \
 		.reg_period_size = DT_INST_##n##_LITEX_PWM_PERIOD_SIZE / 4,    \
+		.prescaler = DT_INST_##n##_LITEX_PWM_PRESCALER,		       \
 	};								       \
 									       \
 	DEVICE_AND_API_INIT(pwm_##n,					       \
