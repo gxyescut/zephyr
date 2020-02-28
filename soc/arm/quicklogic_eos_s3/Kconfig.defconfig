@@ -17,6 +17,12 @@ if SERIAL
 config UART_PL011
 	default y
 
+config UART_LITEUART
+	select SOC_EOS_S3_FPGA
+	default n
+
+if UART_PL011
+
 config UART_INTERRUPT_DRIVEN
 	default y
 
@@ -25,6 +31,15 @@ config UART_PL011_PORT0
 
 config UART_PL011_PORT1
 	default n
+
+endif # UART_PL011
+
+if UART_LITEUART
+
+config UART_INTERRUPT_DRIVEN
+	default n
+
+endif # UART_LITEUART
 
 endif # SERIAL
 
