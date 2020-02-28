@@ -6,6 +6,7 @@
 
 /dts-v1/;
 #include <quicklogic/quicklogic_eos_s3.dtsi>
+#include "quick_feather.dtsi"
 
 / {
 	model = "QuickLogic Quick Feather board";
@@ -52,15 +53,15 @@
 	pwmleds {
 		compatible = "pwm-leds";
 		pwm_led0: pwm_led_0 {
-			pwms = <&pwm 0>;
+			pwms = <&pwm2 0>;
 			label = "Red PWM LED 0";
 		};
 		pwm_led1: pwm_led_1 {
-			pwms = <&pwm 1>;
+			pwms = <&pwm1 0>;
 			label = "Green PWM LED 1";
 		};
 		pwm_led2: pwm_led_2 {
-			pwms = <&pwm 2>;
+			pwms = <&pwm0 0>;
 			label = "Blue PWM LED 2";
 		};
 	};
@@ -100,6 +101,18 @@
 		has-be32k;
 		jedec-id = [c8 40 15];
 	};
+};
+
+&pwm0 {
+	status = "okay";
+};
+
+&pwm1 {
+	status = "okay";
+};
+
+&pwm2 {
+	status = "okay";
 };
 
 &spiflash {

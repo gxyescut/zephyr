@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2020 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	pwm0: pwm@40020000 {
+		compatible = "litex,pwm";
+		reg = <0x40020000 0x4 0x40020004 0x10 0x40020014 0x10>;
+		reg-names = "enable", "width", "period";
+		label = "pwm0";
+		#pwm-cells = <1>;
+		prescaler = <16>;
+	};
+
+	pwm1: pwm@40020800 {
+		compatible = "litex,pwm";
+		reg = <0x40020800 0x4 0x40020804 0x10 0x40020814 0x10>;
+		reg-names = "enable", "width", "period";
+		label = "pwm1";
+		#pwm-cells = <1>;
+		prescaler = <16>;
+	};
+
+	pwm2: pwm@40021000 {
+		compatible = "litex,pwm";
+		reg = <0x40021000 0x4 0x40021004 0x10 0x40021014 0x10>;
+		reg-names = "enable", "width", "period";
+		label = "pwm2";
+		#pwm-cells = <1>;
+		prescaler = <16>;
+	};
+};
+
