@@ -10,7 +10,7 @@
 #include <kernel_structs.h>
 #include <kernel_internal.h>
 #include <timeout_q.h>
-#include <debug/tracing.h>
+#include <tracing/tracing.h>
 #include <stdbool.h>
 
 BUILD_ASSERT(K_LOWEST_APPLICATION_THREAD_PRIO
@@ -37,7 +37,6 @@ BUILD_ASSERT(K_LOWEST_APPLICATION_THREAD_PRIO
 #endif
 
 void z_sched_init(void);
-void z_add_thread_to_ready_q(struct k_thread *thread);
 void z_move_thread_to_end_of_prio_q(struct k_thread *thread);
 void z_remove_thread_from_ready_q(struct k_thread *thread);
 int z_is_thread_time_slicing(struct k_thread *thread);
@@ -61,6 +60,8 @@ void z_time_slice(int ticks);
 void z_reset_time_slice(void);
 void z_sched_abort(struct k_thread *thread);
 void z_sched_ipi(void);
+void z_sched_start(struct k_thread *thread);
+void z_ready_thread(struct k_thread *thread);
 
 static inline void z_pend_curr_unlocked(_wait_q_t *wait_q, s32_t timeout)
 {
@@ -90,11 +91,15 @@ static inline bool z_is_idle_thread_entry(void *entry_point)
 
 static inline bool z_is_idle_thread_object(struct k_thread *thread)
 {
+#ifdef CONFIG_MULTITHREADING
 #ifdef CONFIG_SMP
 	return thread->base.is_idle;
 #else
-	return thread == &z_idle_thread;
+	return thread == &z_idle_threads[0];
 #endif
+#else
+	return false;
+#endif /* CONFIG_MULTITHREADING */
 }
 
 static inline bool z_is_thread_pending(struct k_thread *thread)
@@ -244,14 +249,6 @@ static inline bool _is_valid_prio(int prio, void *entry_point)
 	}
 
 	return true;
-}
-
-static ALWAYS_INLINE void z_ready_thread(struct k_thread *thread)
-{
-	if (z_is_thread_ready(thread)) {
-		z_add_thread_to_ready_q(thread);
-		sys_trace_thread_ready(thread);
-	}
 }
 
 static inline void _ready_one_thread(_wait_q_t *wq)

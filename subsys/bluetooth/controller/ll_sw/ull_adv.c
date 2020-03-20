@@ -24,6 +24,7 @@
 #include "pdu.h"
 #include "ll.h"
 #include "ll_feat.h"
+#include "ll_settings.h"
 #include "lll.h"
 #include "lll_vendor.h"
 #include "lll_clock.h"
@@ -49,6 +50,8 @@
 #include <soc.h>
 #include "hal/debug.h"
 
+#define ULL_ADV_RANDOM_DELAY HAL_TICKER_US_TO_TICKS(10000)
+
 inline struct ll_adv_set *ull_adv_set_get(u16_t handle);
 inline u16_t ull_adv_handle_get(struct ll_adv_set *adv);
 
@@ -69,6 +72,10 @@ static inline void conn_release(struct ll_adv_set *adv);
 static inline u8_t disable(u16_t handle);
 
 static struct ll_adv_set ll_adv[BT_CTLR_ADV_MAX];
+
+#if defined(CONFIG_BT_TICKER_EXT)
+static struct ticker_ext ll_adv_ticker_ext[BT_CTLR_ADV_MAX];
+#endif /* CONFIG_BT_TICKER_EXT */
 
 #if defined(CONFIG_BT_CTLR_ADV_EXT)
 u8_t ll_adv_params_set(u8_t handle, u16_t evt_prop, u32_t interval,
@@ -593,8 +600,8 @@ u8_t ll_adv_enable(u8_t enable)
 		/* Use the default 1M packet max time. Value of 0 is
 		 * equivalent to using BIT(0).
 		 */
-		conn_lll->max_tx_time = PKT_US(PDU_DC_PAYLOAD_SIZE_MIN, 0);
-		conn_lll->max_rx_time = PKT_US(PDU_DC_PAYLOAD_SIZE_MIN, 0);
+		conn_lll->max_tx_time = PKT_US(PDU_DC_PAYLOAD_SIZE_MIN, PHY_1M);
+		conn_lll->max_rx_time = PKT_US(PDU_DC_PAYLOAD_SIZE_MIN, PHY_1M);
 #endif /* CONFIG_BT_CTLR_PHY */
 #endif /* CONFIG_BT_CTLR_DATA_LENGTH */
 
@@ -667,6 +674,7 @@ u8_t ll_adv_enable(u8_t enable)
 
 #if defined(CONFIG_BT_CTLR_DATA_LENGTH)
 		conn->llcp_length.req = conn->llcp_length.ack = 0U;
+		conn->llcp_length.disabled = 0U;
 		conn->llcp_length.cache.tx_octets = 0U;
 		conn->default_tx_octets = ull_conn_default_tx_octets_get();
 
@@ -677,6 +685,7 @@ u8_t ll_adv_enable(u8_t enable)
 
 #if defined(CONFIG_BT_CTLR_PHY)
 		conn->llcp_phy.req = conn->llcp_phy.ack = 0;
+		conn->llcp_phy.disabled = 0U;
 		conn->llcp_phy.pause_tx = 0U;
 		conn->phy_pref_tx = ull_conn_default_phy_tx_get();
 		conn->phy_pref_rx = ull_conn_default_phy_rx_get();
@@ -700,7 +709,7 @@ u8_t ll_adv_enable(u8_t enable)
 #endif /* CONFIG_BT_PERIPHERAL */
 
 #if defined(CONFIG_BT_CTLR_PRIVACY)
-	adv->rl_idx = rl_idx;
+	lll->rl_idx = rl_idx;
 #else
 	ARG_UNUSED(rl_idx);
 #endif /* CONFIG_BT_CTLR_PRIVACY */
@@ -866,7 +875,17 @@ u8_t ll_adv_enable(u8_t enable)
 	} else
 #endif /* CONFIG_BT_PERIPHERAL */
 	{
-		ret = ticker_start(TICKER_INSTANCE_ID_CTLR,
+		const u32_t ticks_slot = adv->evt.ticks_slot +
+					 ticks_slot_overhead;
+#if defined(CONFIG_BT_TICKER_EXT)
+		ll_adv_ticker_ext[handle].ticks_slot_window =
+			ULL_ADV_RANDOM_DELAY + ticks_slot;
+
+		ret = ticker_start_ext(
+#else
+		ret = ticker_start(
+#endif /* CONFIG_BT_TICKER_EXT */
+				   TICKER_INSTANCE_ID_CTLR,
 				   TICKER_USER_ID_THREAD,
 				   (TICKER_ID_ADV_BASE + handle),
 				   ticks_anchor, 0,
@@ -880,9 +899,15 @@ u8_t ll_adv_enable(u8_t enable)
 #else
 				   TICKER_NULL_LAZY,
 #endif
-				   (adv->evt.ticks_slot + ticks_slot_overhead),
+				   ticks_slot,
 				   ticker_cb, adv,
-				   ull_ticker_status_give, (void *)&ret_cb);
+				   ull_ticker_status_give,
+				   (void *)&ret_cb
+#if defined(CONFIG_BT_TICKER_EXT)
+				   ,
+				   &ll_adv_ticker_ext[handle]
+#endif /* CONFIG_BT_TICKER_EXT */
+				   );
 	}
 
 	ret = ull_ticker_status_take(ret, &ret_cb);
@@ -1063,7 +1088,7 @@ static void ticker_cb(u32_t ticks_at_expire, u32_t remainder, u16_t lazy,
 		u32_t ret;
 
 		lll_entropy_get(sizeof(random_delay), &random_delay);
-		random_delay %= HAL_TICKER_US_TO_TICKS(10000);
+		random_delay %= ULL_ADV_RANDOM_DELAY;
 		random_delay += 1;
 
 		ret = ticker_update(TICKER_INSTANCE_ID_CTLR,

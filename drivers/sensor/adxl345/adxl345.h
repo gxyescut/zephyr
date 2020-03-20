@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Analog Devices Inc.
+ * Copyright (c) 2020 Antmicro <www.antmicro.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,29 +13,36 @@
 #include <drivers/i2c.h>
 #include <sys/util.h>
 
-#define ADXL_I2C_ADDR 		(0x1d)
-#define ADXL_DEVICE_ID_REG 	(0x00)
-#define ADXL_RATE_REG 		(0x2c)
-#define ADXL_POWER_CTL_REG 	(0x2d)
-#define ADXL_DATA_FORMAT_REG	(0x31)
-#define ADXL_X_AXIS_DATA_0_REG 	(0x32)
-#define ADXL_FIFO_CTL_REG 	(0x38)
-#define ADXL_FIFO_STATUS_REG 	(0x39)
+#define ADXL345_DEVICE_ID_REG      0x00
+#define ADXL345_RATE_REG           0x2c
+#define ADXL345_POWER_CTL_REG      0x2d
+#define ADXL345_DATA_FORMAT_REG    0x31
+#define ADXL345_X_AXIS_DATA_0_REG  0x32
+#define ADXL345_FIFO_CTL_REG       0x38
+#define ADXL345_FIFO_STATUS_REG    0x39
 
-#define ADXL_RANGE_2G		(0x0)
-#define ADXL_RANGE_4G		(0x1)
-#define ADXL_RANGE_8G		(0x2)
-#define ADXL_RANGE_16G		(0x3)
-#define ADXL_RATE_25HZ 		(0x8)
-#define ADXL_ENABLE_MEASURE_BIT (1 << 3)
-#define ADXL_FIFO_STREAM_MODE 	(1 << 7)
-#define ADXL_FIFO_COUNT_MASK 	(0x3f)
-#define ADXL_COMPLEMENT 	(0xfc00)
+#define ADXL345_PART_ID            0xe5
+
+#define ADXL345_RANGE_2G           0x0
+#define ADXL345_RANGE_4G           0x1
+#define ADXL345_RANGE_8G           0x2
+#define ADXL345_RANGE_16G          0x3
+#define ADXL345_RATE_25HZ          0x8
+#define ADXL345_ENABLE_MEASURE_BIT (1 << 3)
+#define ADXL345_FIFO_STREAM_MODE   (1 << 7)
+#define ADXL345_FIFO_COUNT_MASK    0x3f
+#define ADXL345_COMPLEMENT         0xfc00
+
+#define ADXL345_MAX_FIFO_SIZE      32
 
 struct adxl345_dev_data {
 	unsigned int sample_number;
 	struct device *i2c_master;
 	u8_t i2c_addr;
+
+	s16_t bufx[ADXL345_MAX_FIFO_SIZE];
+	s16_t bufy[ADXL345_MAX_FIFO_SIZE];
+	s16_t bufz[ADXL345_MAX_FIFO_SIZE];
 };
 
 struct adxl345_sample {
@@ -45,7 +52,8 @@ struct adxl345_sample {
 };
 
 struct adxl345_dev_config {
-	struct adxl345_dev_data *data;
+	const char *i2c_master_name;
+	u16_t i2c_addr;
 };
 
 #endif /* ZEPHYR_DRIVERS_SENSOR_ADX345_ADX345_H_ */

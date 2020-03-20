@@ -399,18 +399,29 @@ static void eth_mcux_phy_setup(void)
 {
 #ifdef CONFIG_SOC_SERIES_IMX_RT
 	const u32_t phy_addr = 0U;
-	u32_t status;
+	status_t res;
+	u32_t oms_override;
 
-	/* Prevent PHY entering NAND Tree mode override*/
-	ENET_StartSMIRead(ENET, phy_addr, PHY_OMS_STATUS_REG,
-		kENET_MiiReadValidFrame);
-	status = ENET_ReadSMIData(ENET);
+	/* Disable MII interrupts to prevent triggering PHY events. */
+	ENET_DisableInterrupts(ENET, ENET_EIR_MII_MASK);
 
-	if (status & PHY_OMS_NANDTREE_MASK) {
-		status &= ~PHY_OMS_NANDTREE_MASK;
-		ENET_StartSMIWrite(ENET, phy_addr, PHY_OMS_OVERRIDE_REG,
-			kENET_MiiWriteValidFrame, status);
+	/* Prevent PHY entering NAND Tree mode override. */
+	res = PHY_Read(ENET, phy_addr, PHY_OMS_OVERRIDE_REG, &oms_override);
+	if (res != kStatus_Success) {
+		LOG_WRN("Reading PHY reg failed (status 0x%x)", res);
+	} else {
+		if (oms_override & PHY_OMS_NANDTREE_MASK) {
+			oms_override &= ~PHY_OMS_NANDTREE_MASK;
+			res = PHY_Write(ENET, phy_addr, PHY_OMS_OVERRIDE_REG,
+					oms_override);
+			if (res != kStatus_Success) {
+				LOG_WRN("Writing PHY reg failed (status 0x%x)",
+					res);
+			}
+		}
 	}
+
+	ENET_EnableInterrupts(ENET, ENET_EIR_MII_MASK);
 #endif
 }
 
@@ -818,8 +829,6 @@ static int eth_0_init(struct device *dev)
 	k_delayed_work_init(&context->delayed_phy_work,
 			    eth_mcux_delayed_phy_work);
 
-	eth_mcux_phy_setup();
-
 	sys_clock = CLOCK_GetFreq(kCLOCK_CoreSysClk);
 
 	ENET_GetDefaultConfig(&enet_config);
@@ -881,6 +890,9 @@ static int eth_0_init(struct device *dev)
 
 	ENET_SetSMI(ENET, sys_clock, false);
 
+	/* handle PHY setup after SMI initialization */
+	eth_mcux_phy_setup();
+
 	LOG_DBG("MAC %02x:%02x:%02x:%02x:%02x:%02x",
 		context->mac_addr[0], context->mac_addr[1],
 		context->mac_addr[2], context->mac_addr[3],
@@ -925,8 +937,13 @@ static void eth_iface_init(struct net_if *iface)
 			     sizeof(context->mac_addr),
 			     NET_LINK_ETHERNET);
 
-	/* For VLAN, this value is only used to get the correct L2 driver */
-	context->iface = iface;
+	/* For VLAN, this value is only used to get the correct L2 driver.
+	 * The iface pointer in context should contain the main interface
+	 * if the VLANs are enabled.
+	 */
+	if (context->iface == NULL) {
+		context->iface = iface;
+	}
 
 	ethernet_init(iface);
 	net_if_flag_set(iface, NET_IF_NO_AUTO_START);

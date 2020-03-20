@@ -34,6 +34,11 @@ a .dts file to parse and a list of paths to directories containing bindings.
 # Please do not access private things. Instead, think of what API you need, and
 # add it.
 #
+# This module is not meant to have any global state. It should be possible to
+# create several EDT objects with independent binding paths and flags. If you
+# need to add a configuration parameter or the like, store it in the EDT
+# instance, and initialize it e.g. with a constructor argument.
+#
 # This library is layered on top of dtlib, and is not meant to expose it to
 # clients. This keeps the header generation script simple.
 #
@@ -65,7 +70,7 @@ a .dts file to parse and a list of paths to directories containing bindings.
 # - Please use ""-quoted strings instead of ''-quoted strings, just to make
 #   things consistent (''-quoting is more common otherwise in Python)
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import os
 import re
 import sys
@@ -82,6 +87,7 @@ from dtlib import DT, DTError, to_num, to_nums, TYPE_EMPTY, TYPE_NUMS, \
                   TYPE_PHANDLE, TYPE_PHANDLES_AND_NUMS
 from grutils import Graph
 
+
 #
 # Public classes
 #
@@ -96,13 +102,37 @@ class EDT:
     nodes:
       A list of Node objects for the nodes that appear in the devicetree
 
+    compat2enabled:
+      A collections.defaultdict that maps each 'compatible' string that appears
+      on some enabled Node to a list of enabled Nodes.
+
+      For example, edt.compat2enabled["bar"] would include the 'foo' and 'bar'
+      nodes below.
+
+        foo {
+                compatible = "bar";
+                status = "okay";
+                ...
+        };
+        bar {
+                compatible = "foo", "bar", "baz";
+                status = "okay";
+                ...
+        };
+
+
     dts_path:
       The .dts path passed to __init__()
+
+    dts_source:
+      The final DTS source code of the loaded devicetree after merging nodes
+      and processing /delete-node/ and /delete-property/, as a string
 
     bindings_dirs:
       The bindings directory paths passed to __init__()
     """
-    def __init__(self, dts, bindings_dirs, warn_file=None):
+    def __init__(self, dts, bindings_dirs, warn_file=None,
+                 warn_reg_unit_address_mismatch=True):
         """
         EDT constructor. This is the top-level entry point to the library.
 
@@ -113,12 +143,19 @@ class EDT:
           List of paths to directories containing bindings, in YAML format.
           These directories are recursively searched for .yaml files.
 
-        warn_file:
+        warn_file (default: None):
           'file' object to write warnings to. If None, sys.stderr is used.
+
+        warn_reg_unit_address_mismatch (default: True):
+          If True, a warning is printed if a node has a 'reg' property where
+          the address of the first entry does not match the unit address of the
+          node
         """
         # Do this indirection with None in case sys.stderr is deliberately
         # overridden
         self._warn_file = sys.stderr if warn_file is None else warn_file
+
+        self._warn_reg_unit_address_mismatch = warn_reg_unit_address_mismatch
 
         self.dts_path = dts
         self.bindings_dirs = bindings_dirs
@@ -128,6 +165,7 @@ class EDT:
 
         self._init_compat2binding(bindings_dirs)
         self._init_nodes()
+        self._init_compat2enabled()
 
         self._define_order()
 
@@ -157,6 +195,10 @@ class EDT:
 
         # to_path() checks that the node exists
         return self._node2enode[chosen.props[name].to_path()]
+
+    @property
+    def dts_source(self):
+        return f"{self._dt}"
 
     def __repr__(self):
         return "<EDT for '{}', binding directories '{}'>".format(
@@ -443,7 +485,6 @@ class EDT:
             node.bus_node = node._bus_node()
             node._init_binding()
             node._init_regs()
-            node._set_instance_no()
 
             self.nodes.append(node)
             self._node2enode[dt_node] = node
@@ -455,6 +496,15 @@ class EDT:
             node._init_props()
             node._init_interrupts()
             node._init_pinctrls()
+
+    def _init_compat2enabled(self):
+        # Creates self.compat2enabled
+
+        self.compat2enabled = defaultdict(list)
+        for node in self.nodes:
+            if node.enabled:
+                for compat in node.compats:
+                    self.compat2enabled[compat].append(node)
 
     def _check_binding(self, binding, binding_path):
         # Does sanity checking on 'binding'. Only takes 'self' for the sake of
@@ -662,6 +712,14 @@ class Node:
       The text from the 'label' property on the node, or None if the node has
       no 'label'
 
+    labels:
+      A list of all of the devicetree labels for the node, in the same order
+      as the labels appear, but with duplicates removed.
+
+      This corresponds to the actual devicetree source labels, unlike the
+      "label" attribute, which is the value of a devicetree property named
+      "label".
+
     parent:
       The Node instance for the devicetree parent of the Node, or None if the
       node is the root node
@@ -688,16 +746,6 @@ class Node:
 
     read_only:
       True if the node has a 'read-only' property, and False otherwise
-
-    instance_no:
-      Dictionary that maps each 'compatible' string for the node to a unique
-      index among all nodes that have that 'compatible' string.
-
-      As an example, 'instance_no["foo,led"] == 3' can be read as "this is the
-      fourth foo,led node".
-
-      Only enabled nodes (status != "disabled") are counted. 'instance_no' is
-      meaningless for disabled nodes.
 
     matching_compat:
       The 'compatible' string for the binding that matched the node, or None if
@@ -749,6 +797,11 @@ class Node:
     flash_controller:
       The flash controller for the node. Only meaningful for nodes representing
       flash partitions.
+
+    spi_cs_gpio:
+      The device's SPI GPIO chip select as a ControllerAndData instance, if it
+      exists, and None otherwise. See
+      Documentation/devicetree/bindings/spi/spi-controller.yaml in the Linux kernel.
     """
     @property
     def name(self):
@@ -771,9 +824,12 @@ class Node:
 
         addr = _translate(addr, self._node)
 
-        if self.regs and self.regs[0].addr != addr:
-            self.edt._warn("unit-address and first reg (0x{:x}) don't match "
-                           "for {}".format(self.regs[0].addr, self.name))
+        # Matches the simple_bus_reg warning in dtc
+        if self.edt._warn_reg_unit_address_mismatch and \
+           self.regs and self.regs[0].addr != addr:
+            self.edt._warn("unit address and first address in 'reg' "
+                           f"(0x{self.regs[0].addr:x}) don't match for "
+                           f"{self.path}")
 
         return addr
 
@@ -795,6 +851,11 @@ class Node:
         if "label" in self._node.props:
             return self._node.props["label"].to_string()
         return None
+
+    @property
+    def labels(self):
+        "See the class docstring"
+        return self._node.labels
 
     @property
     def parent(self):
@@ -883,6 +944,28 @@ class Node:
         if controller.matching_compat == "soc-nv-flash":
             return controller.parent
         return controller
+
+    @property
+    def spi_cs_gpio(self):
+        "See the class docstring"
+
+        if not (self.on_bus == "spi" and "cs-gpios" in self.bus_node.props):
+            return None
+
+        if not self.regs:
+            _err("{!r} needs a 'reg' property, to look up the chip select index "
+                 "for SPI".format(self))
+
+        parent_cs_lst = self.bus_node.props["cs-gpios"].val
+
+        # cs-gpios is indexed by the unit address
+        cs_index = self.regs[0].addr
+        if cs_index >= len(parent_cs_lst):
+            _err("index from 'regs' in {!r} ({}) is >= number of cs-gpios "
+                 "in {!r} ({})".format(
+                     self, cs_index, self.bus_node, len(parent_cs_lst)))
+
+        return parent_cs_lst[cs_index]
 
     def __repr__(self):
         return "<Node {} in '{}', {}>".format(
@@ -1297,17 +1380,6 @@ class Node:
 
         return OrderedDict(zip(cell_names, data_list))
 
-    def _set_instance_no(self):
-        # Initializes self.instance_no
-
-        self.instance_no = {}
-
-        for compat in self.compats:
-            self.instance_no[compat] = 0
-            for other_node in self.edt.nodes:
-                if compat in other_node.compats and other_node.enabled:
-                    self.instance_no[compat] += 1
-
 
 class Register:
     """
@@ -1470,35 +1542,6 @@ class Property:
 
 class EDTError(Exception):
     "Exception raised for devicetree- and binding-related errors"
-
-
-#
-# Public global functions
-#
-
-
-def spi_dev_cs_gpio(node):
-    # Returns an SPI device's GPIO chip select if it exists, as a
-    # ControllerAndData instance, and None otherwise. See
-    # Documentation/devicetree/bindings/spi/spi-bus.txt in the Linux kernel.
-
-    if not (node.on_bus == "spi" and "cs-gpios" in node.bus_node.props):
-        return None
-
-    if not node.regs:
-        _err("{!r} needs a 'reg' property, to look up the chip select index "
-             "for SPI".format(node))
-
-    parent_cs_lst = node.bus_node.props["cs-gpios"].val
-
-    # cs-gpios is indexed by the unit address
-    cs_index = node.regs[0].addr
-    if cs_index >= len(parent_cs_lst):
-        _err("index from 'regs' in {!r} ({}) is >= number of cs-gpios "
-             "in {!r} ({})".format(
-                 node, cs_index, node.bus_node, len(parent_cs_lst)))
-
-    return parent_cs_lst[cs_index]
 
 
 #

@@ -225,12 +225,6 @@ ALIASES                = "rst=\verbatim embed:rst:leading-asterisk" \
 
 ALIASES 	       += "req=\xrefitem req \"Requirement\" \"Requirements\" "
 
-# This tag can be used to specify a number of word-keyword mappings (TCL only).
-# A mapping has the form "name=value". For example adding "class=itcl::class"
-# will allow you to use the command class in the itcl::class meaning.
-
-TCL_SUBST              = YES
-
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For
 # instance, some of the names that are used will be different. The list of all
@@ -1966,6 +1960,7 @@ PREDEFINED             = "CONFIG_ARCH_HAS_CUSTOM_BUSY_WAIT" \
                          "CONFIG_BT_MESH_MODEL_EXTENSIONS" \
                          "CONFIG_BT_REMOTE_INFO" \
                          "CONFIG_BT_SMP" \
+                         "CONFIG_BT_SMP_APP_PAIRING_ACCEPT" \
                          "CONFIG_DEVICE_POWER_MANAGEMENT" \
                          "CONFIG_ERRNO" \
                          "CONFIG_EXECUTION_BENCHMARKING" \
@@ -1979,7 +1974,9 @@ PREDEFINED             = "CONFIG_ARCH_HAS_CUSTOM_BUSY_WAIT" \
                          "CONFIG_SCHED_CPU_MASK" \
                          "CONFIG_SCHED_DEADLINE" \
                          "CONFIG_SCHED_DEADLINE" \
+                         "CONFIG_SETTINGS_RUNTIME" \
                          "CONFIG_SMP" \
+                         "CONFIG_SPI_ASYNC" \
                          "CONFIG_SYS_CLOCK_EXISTS" \
                          "CONFIG_SYS_POWER_MANAGEMENT" \
                          "CONFIG_THREAD_CUSTOM_DATA" \

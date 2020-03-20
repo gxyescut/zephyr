@@ -147,8 +147,29 @@ static int client_write(struct mqtt_client *client, const u8_t *data,
 
 	err_code = mqtt_transport_write(client, data, datalen);
 	if (err_code < 0) {
-		MQTT_TRC("TCP write failed, errno = %d, "
-			 "closing connection", errno);
+		MQTT_TRC("Transport write failed, err_code = %d, "
+			 "closing connection", err_code);
+		client_disconnect(client, err_code);
+		return err_code;
+	}
+
+	MQTT_TRC("[%p]: Transport write complete.", client);
+	client->internal.last_activity = mqtt_sys_tick_in_ms_get();
+
+	return 0;
+}
+
+static int client_write_msg(struct mqtt_client *client,
+			    const struct msghdr *message)
+{
+	int err_code;
+
+	MQTT_TRC("[%p]: Transport writing message.", client);
+
+	err_code = mqtt_transport_write_msg(client, message);
+	if (err_code < 0) {
+		MQTT_TRC("Transport write failed, err_code = %d, "
+			 "closing connection", err_code);
 		client_disconnect(client, err_code);
 		return err_code;
 	}
@@ -233,6 +254,8 @@ int mqtt_publish(struct mqtt_client *client,
 {
 	int err_code;
 	struct buf_ctx packet;
+	struct iovec io_vector[2];
+	struct msghdr msg;
 
 	NULL_PARAM_CHECK(client);
 	NULL_PARAM_CHECK(param);
@@ -256,13 +279,17 @@ int mqtt_publish(struct mqtt_client *client,
 		goto error;
 	}
 
-	err_code = client_write(client, packet.cur, packet.end - packet.cur);
-	if (err_code < 0) {
-		goto error;
-	}
+	io_vector[0].iov_base = packet.cur;
+	io_vector[0].iov_len = packet.end - packet.cur;
+	io_vector[1].iov_base = param->message.payload.data;
+	io_vector[1].iov_len = param->message.payload.len;
 
-	err_code = client_write(client, param->message.payload.data,
-				param->message.payload.len);
+	memset(&msg, 0, sizeof(msg));
+
+	msg.msg_iov = io_vector;
+	msg.msg_iovlen = ARRAY_SIZE(io_vector);
+
+	err_code = client_write_msg(client, &msg);
 
 error:
 	MQTT_TRC("[CID %p]:[State 0x%02x]: << result 0x%08x",
@@ -579,7 +606,9 @@ int mqtt_abort(struct mqtt_client *client)
 
 int mqtt_live(struct mqtt_client *client)
 {
+	int err_code = 0;
 	u32_t elapsed_time;
+	bool ping_sent = false;
 
 	NULL_PARAM_CHECK(client);
 
@@ -589,12 +618,17 @@ int mqtt_live(struct mqtt_client *client)
 				client->internal.last_activity);
 	if ((client->keepalive > 0) &&
 	    (elapsed_time >= (client->keepalive * 1000))) {
-		(void)mqtt_ping(client);
+		err_code = mqtt_ping(client);
+		ping_sent = true;
 	}
 
 	mqtt_mutex_unlock(client);
 
-	return 0;
+	if (ping_sent) {
+		return err_code;
+	} else {
+		return -EAGAIN;
+	}
 }
 
 u32_t mqtt_keepalive_time_left(const struct mqtt_client *client)

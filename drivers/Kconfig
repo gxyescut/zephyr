@@ -13,6 +13,8 @@ source "drivers/lora/Kconfig"
 
 source "drivers/console/Kconfig"
 
+source "drivers/debug/Kconfig"
+
 source "drivers/ethernet/Kconfig"
 
 source "drivers/net/Kconfig"
@@ -90,5 +92,7 @@ source "drivers/kscan/Kconfig"
 source "drivers/video/Kconfig"
 
 source "drivers/eeprom/Kconfig"
+
+source "drivers/peci/Kconfig"
 
 endmenu

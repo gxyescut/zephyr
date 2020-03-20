@@ -470,8 +470,9 @@ void ull_filter_adv_update(u8_t adv_fp)
 	filter_clear(&wl_filter);
 
 	/* enabling advertising */
-	if (IS_ENABLED(CONFIG_BT_OBSERVER) &&
-	    adv_fp && !(ull_scan_filter_pol_get(0) & 0x1)) {
+	if (adv_fp &&
+	    (!IS_ENABLED(CONFIG_BT_OBSERVER) ||
+	     !(ull_scan_filter_pol_get(0) & 0x1))) {
 		/* whitelist not in use, update whitelist */
 		wl_update();
 	}
@@ -480,7 +481,7 @@ void ull_filter_adv_update(u8_t adv_fp)
 	filter_clear(&rl_filter);
 
 	if (rl_enable &&
-	    IS_ENABLED(CONFIG_BT_OBSERVER) && !ull_scan_is_enabled(0)) {
+	    (!IS_ENABLED(CONFIG_BT_OBSERVER) || !ull_scan_is_enabled(0))) {
 		/* rl not in use, update resolving list LUT */
 		rl_update();
 	}
@@ -493,7 +494,8 @@ void ull_filter_scan_update(u8_t scan_fp)
 
 	/* enabling advertising */
 	if ((scan_fp & 0x1) &&
-	    (IS_ENABLED(CONFIG_BT_BROADCASTER) && !ull_adv_filter_pol_get(0))) {
+	    (!IS_ENABLED(CONFIG_BT_BROADCASTER) ||
+	     !ull_adv_filter_pol_get(0))) {
 		/* whitelist not in use, update whitelist */
 		wl_update();
 	}
@@ -502,7 +504,7 @@ void ull_filter_scan_update(u8_t scan_fp)
 	filter_clear(&rl_filter);
 
 	if (rl_enable &&
-	    (IS_ENABLED(CONFIG_BT_BROADCASTER) && !ull_adv_is_enabled(0))) {
+	    (!IS_ENABLED(CONFIG_BT_BROADCASTER) || !ull_adv_is_enabled(0))) {
 		/* rl not in use, update resolving list LUT */
 		rl_update();
 	}
@@ -841,6 +843,11 @@ u8_t ull_filter_deferred_targeta_resolve(bt_addr_t *rpa, u8_t rl_idx,
 static void wl_clear(void)
 {
 	for (int i = 0; i < WL_SIZE; i++) {
+		u8_t j = wl[i].rl_idx;
+
+		if (j < ARRAY_SIZE(rl)) {
+			rl[j].wl = 0U;
+		}
 		wl[i].taken = 0U;
 	}
 }

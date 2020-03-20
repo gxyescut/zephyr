@@ -1174,6 +1174,10 @@ static int ztls_socket(int family, int type, int proto)
 		ctx->tls->tls_version = tls_proto;
 	}
 
+	if (proto == IPPROTO_TCP) {
+		net_context_ref(ctx);
+	}
+
 	z_finalize_fd(
 		fd, ctx, (const struct fd_op_vtable *)&tls_sock_fd_op_vtable);
 
@@ -1298,6 +1302,7 @@ int ztls_accept_ctx(struct net_context *parent, struct sockaddr *addr,
 	}
 
 	net_context_set_accepting(child, false);
+	net_context_ref(child);
 
 	z_finalize_fd(
 		fd, child, (const struct fd_op_vtable *)&tls_sock_fd_op_vtable);
@@ -1699,8 +1704,7 @@ static int ztls_poll_prepare_ctx(struct net_context *ctx,
 
 	if (pfd->events & ZSOCK_POLLIN) {
 		if (*pev == pev_end) {
-			errno = ENOMEM;
-			return -1;
+			return -ENOMEM;
 		}
 
 		/* DTLS client should wait for the handshake to complete before
@@ -1725,8 +1729,7 @@ static int ztls_poll_prepare_ctx(struct net_context *ctx,
 		 * immediately, so we tell poll() to short-circuit wait.
 		 */
 		if (sock_is_eof(ctx)) {
-			errno = EALREADY;
-			return -1;
+			return -EALREADY;
 		}
 
 		/* If there already is mbedTLS data to read, there is no
@@ -1735,8 +1738,7 @@ static int ztls_poll_prepare_ctx(struct net_context *ctx,
 		 */
 		if (!IS_LISTENING(ctx)) {
 			if (mbedtls_ssl_get_bytes_avail(&ctx->tls->ssl) > 0) {
-				errno = EALREADY;
-				return -1;
+				return -EALREADY;
 			}
 		}
 	}
@@ -1829,8 +1831,7 @@ next:
 
 again:
 	(*pev)++;
-	errno = EAGAIN;
-	return -1;
+	return -EAGAIN;
 }
 
 int ztls_getsockopt_ctx(struct net_context *ctx, int level, int optname,

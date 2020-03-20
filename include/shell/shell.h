@@ -162,7 +162,7 @@ struct shell_static_entry {
 					mandatory, optional) \
 		), \
 		(\
-		static shell_cmd_handler dummy_##syntax##handler \
+		static shell_cmd_handler dummy_##syntax##_handler \
 			__attribute__((unused)) = handler;\
 		static const struct shell_cmd_entry *dummy_subcmd_##syntax \
 			__attribute__((unused)) = subcmd\
@@ -475,7 +475,7 @@ struct shell_transport {
  * @brief Shell statistics structure.
  */
 struct shell_stats {
-	u32_t log_lost_cnt; /*!< Lost log counter.*/
+	atomic_t log_lost_cnt; /*!< Lost log counter.*/
 };
 
 #ifdef CONFIG_SHELL_STATS

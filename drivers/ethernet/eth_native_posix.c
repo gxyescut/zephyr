@@ -64,9 +64,7 @@ struct eth_context {
 #endif
 };
 
-NET_STACK_DEFINE(RX_ZETH, eth_rx_stack,
-		 CONFIG_ARCH_POSIX_RECOMMENDED_STACK_SIZE,
-		 CONFIG_ARCH_POSIX_RECOMMENDED_STACK_SIZE);
+K_THREAD_STACK_DEFINE(eth_rx_stack, CONFIG_ARCH_POSIX_RECOMMENDED_STACK_SIZE);
 static struct k_thread rx_thread_data;
 
 /* TODO: support multiple interfaces */
@@ -390,6 +388,7 @@ static void create_rx_handler(struct eth_context *ctx)
 			(k_thread_entry_t)eth_rx,
 			ctx, NULL, NULL, K_PRIO_COOP(14),
 			0, K_NO_WAIT);
+	k_thread_name_set(&rx_thread_data, "eth_native_posix_rx");
 }
 
 static void eth_iface_init(struct net_if *iface)
@@ -397,7 +396,12 @@ static void eth_iface_init(struct net_if *iface)
 	struct eth_context *ctx = net_if_get_device(iface)->driver_data;
 	struct net_linkaddr *ll_addr = eth_get_mac(ctx);
 
-	ctx->iface = iface;
+	/* The iface pointer in context should contain the main interface
+	 * if the VLANs are enabled.
+	 */
+	if (ctx->iface == NULL) {
+		ctx->iface = iface;
+	}
 
 	ethernet_init(iface);
 
