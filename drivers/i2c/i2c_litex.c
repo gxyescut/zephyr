@@ -86,6 +86,10 @@ static int i2c_litex_init(struct device *dev)
 
 	*(config->w_reg) |= HIGH_STATE_ON_I2C_LINES;
 	i2c_bitbang_init(bitbang, &i2c_litex_bitbang_io, (void *)config);
+	i2c_bitbang_configure(bitbang, I2C_SPEED_FAST << I2C_SPEED_SHIFT);
+	bitbang->delays[0] = 0;
+	bitbang->delays[1] = 0;
+
 
 	return 0;
 }
