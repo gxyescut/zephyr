@@ -52,8 +52,14 @@ static void adxl345_accel_convert(struct sensor_value *val, int16_t sample)
 		sample |= ADXL345_COMPLEMENT;
 	}
 
-	val->val1 = (sample * 1000) / 32;
-	val->val2 = 0;
+	/* 
+	* Sensor resolution is set to +/- 16G and 10-bit output,
+	* which gives 31.25 mg/LSB that we round to 32.
+	*/
+	int32_t micro_ms2 = (sample * SENSOR_G) / (32 * 1000);
+
+	val->val1 = micro_ms2 / 1000000;
+	val->val2 = micro_ms2 % 1000000;
 }
 
 static int adxl345_sample_fetch(const struct device *dev,
