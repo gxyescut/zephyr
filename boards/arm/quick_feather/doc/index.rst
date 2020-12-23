@@ -27,9 +27,9 @@ Hardware
 - 16 Mbit of on-board flash memory
 - User button
 - RGB LED
-- Powered from USB or a single Li-Po battery
 - Integrated battery charger
-- USB data signals tied to programmable logic
+
+Detailed information about the board can be found in a `QuickFeather repository`_.
 
 Supported Features
 ==================
@@ -43,16 +43,13 @@ features:
 | UART      | on-chip    | serial port                         |
 +-----------+------------+-------------------------------------+
 
-Other hardware features are not currently supported by Zephyr.
-
-The default configuration can be found in the Kconfig
+The default configuration can be found in the Kconfig file
 :zephyr_file:`boards/arm/quick_feather/quick_feather_defconfig`.
 
 Connections and IOs
 ===================
 
-Detailed information about pinouts is available on the
-`QuickLogic github repository`_ in the `schematics PDF document`_.
+Detailed information about pinouts is available in the `schematics document`_.
 
 Programming and Debugging
 *************************
@@ -60,39 +57,67 @@ Programming and Debugging
 Flashing
 ========
 
-EOS S3 platform contains preconfigured DMA which tries to load a program
-from SPI flash to SRAM. Currently the QuickFeather Zephyr port only enables
-loading program directly to SRAM using either OpenOCD and an SWD programmer
-or SEGGER JLink.
+The QuickFeather platform by default boots from flash. Currently
+the Zephyr port only enables loading program directly to SRAM using either
+OpenOCD and a SWD programmer or SEGGER JLink.
 
-- `OpenOCD QuickFeather definition`_
-- JLink flow described in `QuickFeather User Guide`_
+OpenOCD
+-------
+
+In order to connect to the target a SWD programmer supported in
+OpenOCD is needed. To connect to the board run::
+
+   .. code-block:: console
+
+      openocd -f /path/to/swd-programmer.cfg -f tcl/board/quicklogic_quickfeather.cfg -c "init" -c "reset halt"
+
+`The QuickFeather OpenOCD config`_ can be found in the OpenOCD mainline repository.
+
+JLink
+-----
+
+To connect to the QuickFeather with JLink please follow instructions
+in the `QuickFeather User Guide`_.
 
 Debugging
 =========
 
 To debug the QuickFeather board please connect to the target with either
-OpenOCD or JLink and use GDB provided in Zephyr toolchain in *arm-zephyr-eabi*
-directory. Sample can be built in the usual way:
+OpenOCD or JLink and use GDB distributed in Zephyr's SDK in *arm-zephyr-eabi/bin*
+directory.
+
+To load basic sample via GDB:
+
+- Build the sample in an usual way:
 
 .. zephyr-app-commands::
    :zephyr-app: samples/hello_world
    :board: quickfeather
    :goals: build
 
+- Connect to the target using either OpenOCD or JLink
+- Connect via GDB and load an ELF file::
+
+   .. code-block:: console
+
+      /path/to/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb
+      target remote <port_number>
+      file </path/to/zephyr.elf>
+      load
+      continue
 
 References
 **********
 
 .. target-notes::
 
-.. _QuickLogic github repository:
+.. _QuickLogic repository:
     https://github.com/QuickLogic-Corp/quick-feather-dev-board
 
-.. _schematics PDF document:
+.. _schematics document:
     https://github.com/QuickLogic-Corp/quick-feather-dev-board/blob/master/doc/quickfeather-board.pdf
 
-.. _OpenOCD QuickFeather definition:
+.. _The QuickFeather OpenOCD config:
     https://sourceforge.net/p/openocd/code/ci/master/tree/tcl/board/quicklogic_quickfeather.cfg
 
 .. _QuickFeather User Guide:
