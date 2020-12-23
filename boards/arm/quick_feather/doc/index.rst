@@ -111,7 +111,7 @@ References
 
 .. target-notes::
 
-.. _QuickLogic repository:
+.. _QuickFeather repository:
     https://github.com/QuickLogic-Corp/quick-feather-dev-board
 
 .. _schematics document:
