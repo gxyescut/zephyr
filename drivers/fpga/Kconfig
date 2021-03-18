@@ -14,6 +14,12 @@ module = fpga
 
 source "subsys/logging/Kconfig.template.log_config"
 
+config FPGA_SHELL
+	bool "Enable FPGA Shell"
+	depends on SHELL && FPGA
+	help
+	  Enable FPGA Shell for testing.
+
 source "drivers/fpga/Kconfig.eos_s3"
 
 endif
