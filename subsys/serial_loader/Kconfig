@@ -1,0 +1,10 @@
+# Serial loader configuration options
+
+# Copyright (c) 2021 Antmicro <www.antmicro.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config SERIAL_LOADER_SHELL
+	bool "Enable SERIAL_LOADER Shell"
+	depends on SHELL
+	help
+	  Enable SERIAL LOADER Shell.
