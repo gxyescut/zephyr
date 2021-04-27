@@ -333,7 +333,7 @@ static int gpio_eos_s3_pin_interrupt_configure(const struct device *dev,
 	return 0;
 }
 
-static void gpio_eos_s3_isr(const struct device *dev)
+void gpio_eos_s3_isr(const struct device *dev)
 {
 	struct gpio_eos_s3_data *data = dev->data;
 	/* Level interrupts can be only checked from read-only GPIO_INTR_RAW,

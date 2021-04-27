@@ -83,13 +83,6 @@ static int eos_s3_init(const struct device *arg)
 	/* Clear all interrupts */
 	INTR_CTRL->OTHER_INTR = 0xFFFFFF;
 
-	/* Enable UART interrupt */
-	INTR_CTRL->OTHER_INTR_EN_M4 |= UART_INTR_EN_M4;
-
-#ifdef CONFIG_SPI
-	INTR_CTRL->OTHER_INTR_EN_M4 |= SPI_MS_INTR_EN_M4;
-#endif
-
 	key = irq_lock();
 
 	NMI_INIT();

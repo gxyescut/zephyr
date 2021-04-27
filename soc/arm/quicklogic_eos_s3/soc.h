@@ -10,6 +10,7 @@
 #include <sys/util.h>
 #include <eoss3_dev.h>
 #include <devicetree.h>
+#include <arch/arm/aarch32/irq.h>
 
 /* Available frequencies */
 #define HSOSC_1MHZ	1024000
@@ -53,5 +54,27 @@ void eos_s3_lock_enable(void);
 void eos_s3_lock_disable(void);
 
 int eos_s3_io_mux(uint32_t pad_nr, uint32_t pad_cfg);
+
+#undef NVIC_DisableIRQ
+#undef NVIC_EnableIRQ
+#undef NVIC_ClearPendingIRQ
+
+#define WIC_GPIO_IRQ_BASE (5UL)
+#define WIC_OTHER_IRQ_BASE (6UL)
+
+void EOSS3_DisableIRQ(IRQn_Type IRQn);
+void EOSS3_EnableIRQ(IRQn_Type IRQn);
+void EOSS3_ClearPendingIRQ(IRQn_Type IRQn);
+
+#define NVIC_DisableIRQ		EOSS3_DisableIRQ
+#define NVIC_EnableIRQ		EOSS3_EnableIRQ
+#define NVIC_ClearPendingIRQ	EOSS3_ClearPendingIRQ
+
+#undef IRQ_CONNECT
+#define IRQ_CONNECT(irq_p, priority_p, isr_p, isr_param_p, flags_p) \
+    void eos_s3_##isr_p##_wrapper(void *arg); \
+    Z_ISR_DECLARE(irq_p, 0, eos_s3_##isr_p##_wrapper, isr_param_p); \
+    z_arm_irq_priority_set(irq_p, priority_p, flags_p);
+
 
 #endif /* _SOC__H_ */
