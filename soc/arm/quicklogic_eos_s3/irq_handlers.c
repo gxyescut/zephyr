@@ -20,6 +20,16 @@ void pl011_isr_wrapper(void *arg)
 }
 #endif
 
+#ifdef CONFIG_SPI_DW
+extern void spi_dw_isr(void *arg);
+
+void spi_dw_isr_wrapper(void *arg)
+{
+	spi_dw_isr(arg);
+	EOSS3_ClearPendingIRQ(SpiMs_IRQn);
+}
+#endif
+
 static int register_irq_wrappers(const struct device *arg)
 {
 #ifdef CONFIG_UART_PL011
@@ -29,6 +39,10 @@ static int register_irq_wrappers(const struct device *arg)
 #else
 #error "EOS-S3 has only 1 UART peripheral and 1 common IRQ"
 #endif
+#endif
+#ifdef CONFIG_SPI_DW
+	IRQ_REPLACE_ISR(DT_IRQN(DT_N_S_soc_S_spi_40007000),
+			spi_dw_isr_wrapper);
 #endif
 	return 0;
 }
