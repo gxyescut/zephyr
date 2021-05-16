@@ -50,7 +50,7 @@
 			compatible = "arm,pl011";
 			reg = <0x40010000 DT_SIZE_K(4)>;
 			clocks = <&uartclk>;
-			interrupts = <7 3>;
+			interrupts = <7 0>;
 			interrupt-names = "rx";
 			label = "UART_0";
 		};
@@ -71,7 +71,7 @@
 			reg = <0x40007000 0x400>;
 			label = "SPI";
 			clocks = <&spiclk>;
-			interrupts = <16 0>;
+			interrupts = <16 3>;
 
 			#address-cells = <1>;
 			#size-cells = <0>;

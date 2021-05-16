@@ -55,26 +55,24 @@ void eos_s3_lock_disable(void);
 
 int eos_s3_io_mux(uint32_t pad_nr, uint32_t pad_cfg);
 
-#undef NVIC_DisableIRQ
-#undef NVIC_EnableIRQ
-#undef NVIC_ClearPendingIRQ
-
-#define WIC_GPIO_IRQ_BASE (5UL)
-#define WIC_OTHER_IRQ_BASE (6UL)
-
-void EOSS3_DisableIRQ(IRQn_Type IRQn);
-void EOSS3_EnableIRQ(IRQn_Type IRQn);
-void EOSS3_ClearPendingIRQ(IRQn_Type IRQn);
-
-#define NVIC_DisableIRQ		EOSS3_DisableIRQ
-#define NVIC_EnableIRQ		EOSS3_EnableIRQ
-#define NVIC_ClearPendingIRQ	EOSS3_ClearPendingIRQ
-
+/* Override default IRQ_CONNECT:
+ * EOS S3 has WIC (Wake-up Interrupt Controller) which is an independent
+ * interrupt controller that also handles enabling, disabling and
+ * clearing IRQs. To handle ISRs properly we need to wrap original ISR
+ * and append WIC functions.
+ */
 #undef IRQ_CONNECT
 #define IRQ_CONNECT(irq_p, priority_p, isr_p, isr_param_p, flags_p) \
     void eos_s3_##isr_p##_wrapper(void *arg); \
     Z_ISR_DECLARE(irq_p, 0, eos_s3_##isr_p##_wrapper, isr_param_p); \
     z_arm_irq_priority_set(irq_p, priority_p, flags_p);
 
+#define WIC_GPIO_IRQ_BASE (5UL)
+#define WIC_OTHER_IRQ_BASE (6UL)
+
+/* WIC functions */
+void eos_s3_wic_enable_irq(IRQn_Type IRQn);
+void eos_s3_wic_disable_irq(IRQn_Type IRQn);
+void eos_s3_wic_clear_pending_irq(IRQn_Type IRQn);
 
 #endif /* _SOC__H_ */

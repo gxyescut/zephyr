@@ -1,31 +1,25 @@
+/*
+ * Copyright (c) 2021 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <soc.h>
 
-/* EOS S3 has WIC (Wake-up Interrupt Controller) which is an independent
- * interrupt controller that also handles enabling, disabling and
- * clearing IRQs. To actually make IRQs work properly we need to
- * override NVIC functions and include WIC handling in them..
- */
-void EOSS3_DisableIRQ(IRQn_Type IRQn)
+/* WIC functions */
+void eos_s3_wic_disable_irq(IRQn_Type IRQn)
 {
 	if ((int32_t)(IRQn) >= 0) {
-		NVIC->ICER[(((uint32_t)IRQn) >> 5UL)] =
-			(uint32_t)(1UL << (((uint32_t)IRQn) & 0x1FUL));
 		if ((int32_t)IRQn != WIC_GPIO_IRQ_BASE) {
 			INTR_CTRL->OTHER_INTR_EN_M4 &=
 				~(1 << (IRQn - WIC_OTHER_IRQ_BASE));
 		}
-		__DSB();
-		__ISB();
 	}
 }
 
-void EOSS3_EnableIRQ(IRQn_Type IRQn)
+void eos_s3_wic_enable_irq(IRQn_Type IRQn)
 {
 	if ((int32_t)(IRQn) >= 0) {
-		__COMPILER_BARRIER();
-		NVIC->ISER[(((uint32_t)IRQn) >> 5UL)] =
-			(uint32_t)(1UL << (((uint32_t)IRQn) & 0x1FUL));
-		__COMPILER_BARRIER();
 		if ((int32_t)IRQn != WIC_GPIO_IRQ_BASE) {
 			INTR_CTRL->OTHER_INTR_EN_M4 |=
 				(1 << (IRQn - WIC_OTHER_IRQ_BASE));
@@ -33,11 +27,9 @@ void EOSS3_EnableIRQ(IRQn_Type IRQn)
 	}
 }
 
-void EOSS3_ClearPendingIRQ(IRQn_Type IRQn)
+void eos_s3_wic_clear_pending_irq(IRQn_Type IRQn)
 {
 	if ((int32_t)(IRQn) >= 0) {
-		NVIC->ICPR[(((uint32_t)IRQn) >> 5UL)] =
-			(uint32_t)(1UL << (((uint32_t)IRQn) & 0x1FUL));
 		if ((int32_t)IRQn != WIC_GPIO_IRQ_BASE) {
 			INTR_CTRL->OTHER_INTR |=
 				(1 << (IRQn - WIC_OTHER_IRQ_BASE));
@@ -45,24 +37,27 @@ void EOSS3_ClearPendingIRQ(IRQn_Type IRQn)
 	}
 }
 
+/* Whenever IRQ_CONNECT is used for EOS-S3 SoC, a proper IRQ wrapper
+ * should be added here.
+ */
 extern void pl011_isr(void *arg);
 extern void gpio_eos_s3_isr(void *arg);
 extern void spi_dw_isr(void *arg);
 
 void eos_s3_pl011_isr_wrapper(void *arg)
 {
+    eos_s3_wic_clear_pending_irq(Uart_IRQn);
     pl011_isr(arg);
-    EOSS3_ClearPendingIRQ(Uart_IRQn);
 }
 
 void eos_s3_gpio_eos_s3_isr_wrapper(void *arg)
 {
+    /* GPIO controller has separate IRQ handling */
     gpio_eos_s3_isr(arg);
-    EOSS3_ClearPendingIRQ(Gpio_IRQn);
 }
 
 void eos_s3_spi_dw_isr_wrapper(void *arg)
 {
+    eos_s3_wic_clear_pending_irq(SpiMs_IRQn);
     spi_dw_isr(arg);
-    EOSS3_ClearPendingIRQ(SpiMs_IRQn);
 }
