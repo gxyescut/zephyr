@@ -37,6 +37,8 @@ LOG_MODULE_REGISTER(spi_dw);
 #include <sys/sys_io.h>
 #include <sys/util.h>
 
+uint32_t cnt = 0;
+
 #ifdef CONFIG_IOAPIC
 #include <drivers/interrupt_controller/ioapic.h>
 #endif
@@ -160,12 +162,14 @@ static void pull_data(const struct device *dev)
 
 	DBG_COUNTER_INIT();
 
+    //printk(".\n"); // Uncomment to make it work
 	while (read_rxflr(info->regs)) {
 		uint32_t data = read_dr(info->regs);
 
 		DBG_COUNTER_INC();
 
 		if (spi_context_rx_buf_on(&spi->ctx)) {
+            cnt++;
 			switch (spi->dfs) {
 			case 1:
 				UNALIGNED_PUT(data, (uint8_t *)spi->ctx.rx_buf);
@@ -189,7 +193,8 @@ static void pull_data(const struct device *dev)
 		write_rxftlr(spi->ctx.tx_len - 1, info->regs);
 	} else if (read_rxftlr(info->regs) >= spi->ctx.rx_len) {
 		write_rxftlr(spi->ctx.rx_len - 1, info->regs);
-	}
+    }
+    printk("rx_len remaining: %d, | Number of IRQs: %d\n", spi->ctx.rx_len, cnt);
 
 	LOG_DBG("Pulled: %d", DBG_COUNTER_RESULT());
 }
