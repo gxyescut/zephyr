@@ -67,7 +67,14 @@ void z_impl_sys_rand_get(void *dst, size_t outlen)
 	uint32_t ret;
 
 	while (outlen) {
-		ret = sys_rand32_get();
+		/*
+		 * Parameters: (rand_val * multiplier + increment) & modulus
+		 *
+		 * Increment value must be odd and coprime with multiplier.
+		 * Modulus performs modulo 2^32 operation.
+		 */
+		ret = ((sys_rand32_get() * 32310901L + 123456789L) & 0xffffffff);
+
 		blocksize = MIN(outlen, sizeof(ret));
 		(void)memcpy((void *)udst, &ret, blocksize);
 		udst += blocksize;
