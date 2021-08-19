@@ -113,6 +113,8 @@ class Build(Forceable):
         group.add_argument('-t', '--target',
                            help='''run build system target TARGET
                            (try "-t usage")''')
+        group.add_argument('-e', '--emu-platform',
+                           help='''run on EMU_PLATFORM''')
         group.add_argument('-T', '--test-item',
                            help='''Build based on test data in testcase.yaml
                            or sample.yaml''')
@@ -183,7 +185,8 @@ class Build(Forceable):
         self._sanity_check()
 
         board, origin = self._find_board()
-        self._run_cmake(board, origin, self.args.cmake_opts)
+        emu_platform = self.args.emu_platform
+        self._run_cmake(board, origin, emu_platform, self.args.cmake_opts)
         if args.cmake_only:
             return
 
@@ -420,7 +423,7 @@ class Build(Forceable):
                 self.source_dir = self._find_source_dir()
                 self._sanity_check_source_dir()
 
-    def _run_cmake(self, board, origin, cmake_opts):
+    def _run_cmake(self, board, origin, emu_platform, cmake_opts):
         if board is None and config_getboolean('board_warn', True):
             log.wrn('This looks like a fresh build and BOARD is unknown;',
                     "so it probably won't work. To fix, use",
@@ -439,6 +442,8 @@ class Build(Forceable):
             cmake_opts = []
         if self.args.cmake_opts:
             cmake_opts.extend(self.args.cmake_opts)
+        if emu_platform is not None:
+            cmake_opts.append('-DEMU_PLATFORM_TARGET={}'.format(emu_platform))
 
         user_args = config_get('cmake-args', None)
         if user_args:

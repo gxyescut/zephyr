@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 set(EMU_PLATFORM renode qemu)
-set(EMU_PLATFORM_DEFAULT qemu)
+set(EMU_PLATFORM_DEFAULT renode)
 set(RENODE_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/support/hifive1.resc)
 
 set(QEMU_binary_suffix riscv32)
