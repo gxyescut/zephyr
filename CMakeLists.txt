@@ -1588,7 +1588,12 @@ if(HEX_FILES_TO_MERGE)
 endif()
 
 if(EMU_PLATFORM)
-  include(${ZEPHYR_BASE}/cmake/emu/${EMU_PLATFORM}.cmake)
+  if(NOT EMU_PLATFORM_DEFAULT)
+    list(GET EMU_PLATFORM 0 EMU_PLATFORM_DEFAULT)
+    message(WARNING "EMU_PLATFORM_DEFAULT is not set! Defaulting to "
+	    ${EMU_PLATFORM_DEFAULT})
+  endif()
+  include(${ZEPHYR_BASE}/cmake/emu/${EMU_PLATFORM_DEFAULT}.cmake)
 else()
   add_custom_target(run
     COMMAND
