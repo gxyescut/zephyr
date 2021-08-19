@@ -5,7 +5,8 @@ arch: riscv32
 toolchain:
   - zephyr
 ram: 16
-simulation: qemu
+#simulation: qemu
+simulation: renode
 supported:
   - pwm
   - gpio
