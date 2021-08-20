@@ -1551,6 +1551,8 @@ class Platform:
         self.arch = data['arch']
         self.type = data.get('type', "na")
         self.simulation = data.get('simulation', "na")
+        #print("x"*80)
+        #print(self.simulation)
         self.supported_toolchains = data.get("toolchain", [])
         self.env = data.get("env", [])
         self.env_satisfied = True
@@ -2017,6 +2019,7 @@ class CMake():
         cmake_args = [
             f'-B{self.build_dir}',
             f'-S{self.source_dir}',
+            f'-DEMU_PLATFORM_TARGET={self.platform.simulation}',
             f'-DEXTRA_CFLAGS="{cflags}"',
             f'-DEXTRA_AFLAGS="{aflags}',
             f'-DEXTRA_LDFLAGS="{ldflags}"',
@@ -2179,6 +2182,7 @@ class FilterBuilder(CMake):
 class ProjectBuilder(FilterBuilder):
 
     def __init__(self, suite, instance, **kwargs):
+        print(instance.platform)
         super().__init__(instance.testcase, instance.platform, instance.testcase.source_dir, instance.build_dir)
 
         self.log = "build.log"
