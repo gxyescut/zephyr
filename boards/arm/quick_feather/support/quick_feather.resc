@@ -1,0 +1,17 @@
+:name: QuickLogic QuickFeather
+:description: This script is prepared for the QuickFeather board.
+
+$name?="QuickFeather"
+
+using sysbus
+mach create $name
+machine LoadPlatformDescription @platforms/boards/eos-s3-quickfeather.repl
+
+showAnalyzer uart
+
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+runMacro $reset
+
