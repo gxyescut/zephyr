@@ -1,0 +1,17 @@
+# PCF8574 GPIO configuration options
+
+# Copyright (c) 2021 Antmicro
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig GPIO_PCF8574
+	bool "PCF8574 I2C-based GPIO chip"
+	depends on I2C
+	help
+	  Enable driver for PCF8574 I2C-based GPIO chip.
+
+config GPIO_PCF8574_INIT_PRIORITY
+	int "Init priority"
+	default 70
+	depends on GPIO_PCF8574
+	help
+	  Device driver initialization priority.
