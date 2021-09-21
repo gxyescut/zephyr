@@ -171,6 +171,80 @@
 			label = "i2s_tx";
 			status = "disabled";
 		};
+		fastvdma_1: fastvdma@e000b800 {
+			compatible = "litex,fastvdma";
+			reg = <0xe000b800 0x4
+			       0xe000b804 0x1
+			       0xe000b808 0x1
+			       0xe000b80c 0x1
+			       0xe000b810 0x1
+			       0xe000b814 0x1
+			       0xe000b818 0x1
+			       0xe000b81c 0x1
+			       0xe000b820 0x1
+			       0xe000b824 0x1
+			       0xe000b828 0x1
+			       0xe000b82c 0x1
+			       0xe000b830 0x1
+			       0xe000b834 0x1
+			       0xe000b838 0x1>;
+			reg-names = "control",
+			        "status",
+			        "irq_mask",
+			        "irq_status",
+			        "read_base",
+			        "read_length",
+			        "read_count",
+			        "read_stride",
+			        "write_base",
+			        "write_length",
+			        "write_count",
+			        "write_stride",
+			        "ev_status",
+			        "ev_pending",
+			        "ev_enable";
+			interrupt-parent = <&intc0>;
+			interrupts = <5 2>;
+			label = "fastvdma_1";
+			status = "disabled";
+		};
+		fastvdma_2: fastvdma@e000c000 {
+			compatible = "litex,fastvdma";
+			reg = <0xe000c000 0x4
+			       0xe000c004 0x1
+			       0xe000c008 0x1
+			       0xe000c00c 0x1
+			       0xe000c010 0x1
+			       0xe000c014 0x1
+			       0xe000c018 0x1
+			       0xe000c01c 0x1
+			       0xe000c020 0x1
+			       0xe000c024 0x1
+			       0xe000c028 0x1
+			       0xe000c02c 0x1
+			       0xe000c030 0x1
+			       0xe000c034 0x1
+			       0xe000c038 0x1>;
+			reg-names = "control",
+			        "status",
+			        "irq_mask",
+			        "irq_status",
+			        "read_base",
+			        "read_length",
+			        "read_count",
+			        "read_stride",
+			        "write_base",
+			        "write_length",
+			        "write_count",
+			        "write_stride",
+			        "ev_status",
+			        "ev_pending",
+			        "ev_enable";
+			interrupt-parent = <&intc0>;
+			interrupts = <5 2>;
+			label = "fastvdma_2";
+			status = "disabled";
+		};
 		clock-outputs {
 			#address-cells = <1>;
 			#size-cells = <0>;
