@@ -439,6 +439,11 @@ struct ov2640_data {
 	uint8_t i2c_addr;
 };
 
+struct ov2640_config {
+	const char *i2c_label;
+	uint16_t i2c_addr;
+};
+
 #define OV2640_VIDEO_FORMAT_CAP(width, height, format) \
 	{ \
 		.pixelformat = (format), \
@@ -478,6 +483,7 @@ static int ov2640_write_reg(const struct device *dev, uint8_t reg_addr,
 				uint8_t value)
 {
 	struct ov2640_data *drv_data = dev->data;
+	const struct ov2640_config *dev_cfg = dev->config;
 	uint8_t tries = 3;
 
 	/**
@@ -487,7 +493,7 @@ static int ov2640_write_reg(const struct device *dev, uint8_t reg_addr,
 	 * itself.
 	 */
 	while (tries--) {
-		if (!i2c_reg_write_byte(drv_data->i2c, drv_data->i2c_addr,
+		if (!i2c_reg_write_byte(drv_data->i2c, dev_cfg->i2c_addr,
 								reg_addr, value)) {
 			return 0;
 		}
@@ -502,6 +508,7 @@ static int ov2640_write_reg(const struct device *dev, uint8_t reg_addr,
 static int ov2640_read_reg(const struct device *dev, uint8_t reg_addr)
 {
 	struct ov2640_data *drv_data = dev->data;
+	const struct ov2640_config *dev_cfg = dev->config;
 	uint8_t tries = 3;
 	uint8_t value;
 
@@ -512,7 +519,7 @@ static int ov2640_read_reg(const struct device *dev, uint8_t reg_addr)
 	 * itself.
 	 */
 	while (tries--) {
-		if (!i2c_reg_read_byte(drv_data->i2c, drv_data->i2c_addr,
+		if (!i2c_reg_read_byte(drv_data->i2c, dev_cfg->i2c_addr,
 								reg_addr, &value)) {
 			return value;
 		}
@@ -966,7 +973,7 @@ static const struct video_driver_api ov2640_driver_api = {
 	.set_ctrl = ov2640_set_ctrl,
 };
 
-static int ov2640_init(const struct device *dev)
+static int ov2640_camera_init(const struct device *dev)
 {
 	struct video_format fmt;
 	struct ov2640_data *drv_data = dev->data;
@@ -1019,11 +1026,10 @@ static int ov2640_init(const struct device *dev)
 }
 
 /* Unique Instance */
-static struct ov2640_data ov2640_data_0;
-
-static int ov2640_init_0(const struct device *dev)
+static int ov2640_init(const struct device *dev)
 {
 	struct ov2640_data *drv_data = dev->data;
+	const struct ov2640_config *dev_cfg = dev->config;
 
 #if DT_NODE_EXISTS(reset_gpios)
 	char *gpio_name = DT_INST_GPIO_LABEL(0, reset_gpios);
@@ -1040,11 +1046,11 @@ static int ov2640_init_0(const struct device *dev)
 	}
 #endif
 
-	drv_data->i2c = device_get_binding(DT_INST_BUS_LABEL(0));
+	drv_data->i2c = device_get_binding(dev_cfg->i2c_label);
 
 	if (drv_data->i2c == NULL) {
 		LOG_ERR("Failed to get pointer to %s device!",
-			DT_INST_LABEL(0));
+			dev_cfg->i2c_label);
 		return -EINVAL;
 	}
 
@@ -1055,12 +1061,20 @@ static int ov2640_init_0(const struct device *dev)
 		LOG_ERR("Failed to configure ov2640 i2c interface.");
 	}
 
-	drv_data->i2c_addr = DT_INST_REG_ADDR(0);
-
-	return ov2640_init(dev);
+	return ov2640_camera_init(dev);
 }
 
-DEVICE_DT_INST_DEFINE(0, &ov2640_init_0, NULL,
-			&ov2640_data_0, NULL,
-			POST_KERNEL, CONFIG_VIDEO_INIT_PRIORITY,
-			&ov2640_driver_api);
+#define OV2640_INIT(n) 												\
+	static struct ov2640_data ov2640_data_##n;						\
+																	\
+	static const struct ov2640_config ov2640_cfg_##n = { 			\
+		.i2c_label = DT_INST_BUS_LABEL(n),							\
+		.i2c_addr = DT_INST_REG_ADDR(n)								\
+	};																\
+																	\
+	DEVICE_DT_INST_DEFINE(n, &ov2640_init, NULL,					\
+				&ov2640_data_##n, &ov2640_cfg_##n,					\
+				APPLICATION, CONFIG_VIDEO_INIT_PRIORITY,			\
+				&ov2640_driver_api);
+
+DT_INST_FOREACH_STATUS_OKAY(OV2640_INIT)
