@@ -27,6 +27,8 @@
 
 #define GPIO_IRQ		DT_IRQN(DT_NODELABEL(gpio_in))
 
+#define FASTVDMA_IRQ	DT_IRQN(DT_NODELABEL(fastvdma))
+
 static inline void vexriscv_litex_irq_setmask(uint32_t mask)
 {
 	__asm__ volatile ("csrw %0, %1" :: "i"(IRQ_MASK), "r"(mask));
@@ -100,10 +102,12 @@ static void vexriscv_litex_irq_handler(const void *device)
 	}
 #endif
 
-	if (irqs & (1 << GPIO_IRQ)) {
-		ite = &_sw_isr_table[GPIO_IRQ];
+#ifdef CONFIG_LITEX_FASTVDMA
+	if (irqs & (1 << FASTVDMA_IRQ)) {
+		ite = &_sw_isr_table[FASTVDMA_IRQ];
 		ite->isr(ite->arg);
 	}
+#endif
 }
 
 void arch_irq_enable(unsigned int irq)

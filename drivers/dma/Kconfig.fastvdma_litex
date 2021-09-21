@@ -1,0 +1,9 @@
+# Copyright 2021 Antmicro <www.antmicro.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config DMA_LITEX_FASTVDMA
+	bool
+	prompt "LiteX FastVDMA driver"
+	help
+	  This option enables support of FastVDMA controller
+	  integrated with LiteX SoC.
