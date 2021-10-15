@@ -225,54 +225,57 @@ static const struct dma_driver_api fastvdma_litex_driver_api = {
     .get_status = fastvdma_litex_get_status,
 };
 
-static void fastvdma_litex_irq_init(void);
+#define FASTVDMA_INIT(n)    \
+    static void fastvdma_litex_irq_init_##n(void);  \
+            \
+    static const struct fastvdma_dev_cfg dev_cfg_##n = { \
+        .control_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, control), \
+        .status_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, status), \
+        .irq_mask_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, irq_mask), \
+        .irq_status_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, irq_status), \
+        .read_base_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, read_base), \
+        .read_length_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, read_length), \
+        .read_count_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, read_count), \
+        .read_stride_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, read_stride), \
+        .write_base_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, write_base), \
+        .write_length_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, write_length), \
+        .write_count_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, write_count), \
+        .write_stride_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, write_stride), \
+        .ev_status_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, ev_status), \
+        .ev_pending_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, ev_pending), \
+        .ev_enable_addr = \
+        (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(n, ev_enable), \
+        .irq_config = fastvdma_litex_irq_init_##n \
+    };  \
+\
+    DEVICE_DT_INST_DEFINE(n,\
+        &fastvdma_litex_init,\
+        device_pm_control_nop,\
+        NULL, &dev_cfg_##n, POST_KERNEL,\
+        CONFIG_KERNEL_INIT_PRIORITY_DEVICE,\
+        &fastvdma_litex_driver_api);\
+\
+    static void fastvdma_litex_irq_init_##n(void)\
+    {\
+        IRQ_CONNECT(DT_INST_IRQN(n),\
+                DT_INST_IRQ(n, priority),\
+                fastvdma_litex_irq_handler,\
+                DEVICE_DT_INST_GET(n), 0);\
+        irq_enable(DT_INST_IRQN(n));\
+    }
 
-static const struct fastvdma_dev_cfg dev_cfg = { \
-    .control_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, control), \
-    .status_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, status), \
-    .irq_mask_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, irq_mask), \
-    .irq_status_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, irq_status), \
-    .read_base_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, read_base), \
-    .read_length_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, read_length), \
-    .read_count_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, read_count), \
-    .read_stride_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, read_stride), \
-    .write_base_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, write_base), \
-    .write_length_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, write_length), \
-    .write_count_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, write_count), \
-    .write_stride_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, write_stride), \
-    .ev_status_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, ev_status), \
-    .ev_pending_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, ev_pending), \
-    .ev_enable_addr = \
-    (volatile uint32_t *) DT_INST_REG_ADDR_BY_NAME(0, ev_enable), \
-    .irq_config = fastvdma_litex_irq_init \
-};
-
-DEVICE_DT_INST_DEFINE(0,
-    &fastvdma_litex_init,
-    device_pm_control_nop,
-    NULL, &dev_cfg, POST_KERNEL,
-    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,
-    &fastvdma_litex_driver_api);
-
-static void fastvdma_litex_irq_init(void)
-{
-    IRQ_CONNECT(DT_INST_IRQN(0),
-            DT_INST_IRQ(0, priority),
-            fastvdma_litex_irq_handler,
-            DEVICE_DT_INST_GET(0), 0);
-    irq_enable(DT_INST_IRQN(0));
-}
+DT_INST_FOREACH_STATUS_OKAY(FASTVDMA_INIT)
