@@ -27,7 +27,8 @@
 
 #define GPIO_IRQ		DT_IRQN(DT_NODELABEL(gpio_in))
 
-#define FASTVDMA_IRQ	DT_IRQN(DT_NODELABEL(fastvdma))
+#define FASTVDMA_1_IRQ	DT_IRQN(DT_NODELABEL(fastvdma_1))
+#define FASTVDMA_2_IRQ	DT_IRQN(DT_NODELABEL(fastvdma_2))
 
 static inline void vexriscv_litex_irq_setmask(uint32_t mask)
 {
@@ -102,9 +103,13 @@ static void vexriscv_litex_irq_handler(const void *device)
 	}
 #endif
 
-#ifdef CONFIG_LITEX_FASTVDMA
-	if (irqs & (1 << FASTVDMA_IRQ)) {
-		ite = &_sw_isr_table[FASTVDMA_IRQ];
+#ifdef CONFIG_DMA_LITEX_FASTVDMA
+	if (irqs & (1 << FASTVDMA_1_IRQ)) {
+		ite = &_sw_isr_table[FASTVDMA_1_IRQ];
+		ite->isr(ite->arg);
+	}
+	if (irqs & (1 << FASTVDMA_2_IRQ)) {
+		ite = &_sw_isr_table[FASTVDMA_2_IRQ];
 		ite->isr(ite->arg);
 	}
 #endif
