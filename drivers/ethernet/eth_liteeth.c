@@ -39,11 +39,11 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #define LITEETH_RX_BASE		DT_INST_REG_ADDR_BY_NAME(0, control)
 #define LITEETH_RX_SLOT		((LITEETH_RX_BASE) + 0x00)
 #define LITEETH_RX_LENGTH	((LITEETH_RX_BASE) + 0x04)
-#define LITEETH_RX_EV_PENDING	((LITEETH_RX_BASE) + 0x28)
-#define LITEETH_RX_EV_ENABLE	((LITEETH_RX_BASE) + 0x2c)
+#define LITEETH_RX_EV_PENDING	((LITEETH_RX_BASE) + 0x20)
+#define LITEETH_RX_EV_ENABLE	((LITEETH_RX_BASE) + 0x24)
 
 /* sram - tx */
-#define LITEETH_TX_BASE		((DT_INST_REG_ADDR_BY_NAME(0, control)) + 0x30)
+#define LITEETH_TX_BASE		((DT_INST_REG_ADDR_BY_NAME(0, control)) + 0x28)
 #define LITEETH_TX_START	((LITEETH_TX_BASE) + 0x00)
 #define LITEETH_TX_READY	((LITEETH_TX_BASE) + 0x04)
 #define LITEETH_TX_SLOT		((LITEETH_TX_BASE) + 0x0c)
@@ -132,7 +132,7 @@ static void eth_rx(const struct device *port)
 	key = irq_lock();
 
 	/* get frame's length */
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 2; i++) {
 		len <<= 8;
 		len |= sys_read8(LITEETH_RX_LENGTH + i * 0x4);
 	}
