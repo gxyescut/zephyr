@@ -30,6 +30,10 @@
 #define FASTVDMA_1_IRQ	DT_IRQN(DT_NODELABEL(fastvdma_1))
 #define FASTVDMA_2_IRQ	DT_IRQN(DT_NODELABEL(fastvdma_2))
 
+#define FASTVDMA_GPU_IN_1_IRQ	DT_IRQN(DT_NODELABEL(fastvdma_gpu_in_1))
+#define FASTVDMA_GPU_IN_2_IRQ	DT_IRQN(DT_NODELABEL(fastvdma_gpu_in_2))
+#define FASTVDMA_GPU_OUT_IRQ	DT_IRQN(DT_NODELABEL(fastvdma_gpu_out))
+
 static inline void vexriscv_litex_irq_setmask(uint32_t mask)
 {
 	__asm__ volatile ("csrw %0, %1" :: "i"(IRQ_MASK), "r"(mask));
@@ -110,6 +114,18 @@ static void vexriscv_litex_irq_handler(const void *device)
 	}
 	if (irqs & (1 << FASTVDMA_2_IRQ)) {
 		ite = &_sw_isr_table[FASTVDMA_2_IRQ];
+		ite->isr(ite->arg);
+	}
+	if (irqs & (1 << FASTVDMA_GPU_IN_1_IRQ)) {
+		ite = &_sw_isr_table[FASTVDMA_GPU_IN_1_IRQ];
+		ite->isr(ite->arg);
+	}
+	if (irqs & (1 << FASTVDMA_GPU_IN_2_IRQ)) {
+		ite = &_sw_isr_table[FASTVDMA_GPU_IN_2_IRQ];
+		ite->isr(ite->arg);
+	}
+	if (irqs & (1 << FASTVDMA_GPU_OUT_IRQ)) {
+		ite = &_sw_isr_table[FASTVDMA_GPU_OUT_IRQ];
 		ite->isr(ite->arg);
 	}
 #endif

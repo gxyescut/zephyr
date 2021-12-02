@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/ {
+ / {
 	#address-cells = <1>;
 	#size-cells = <1>;
 	compatible = "litex,vexriscv", "litex-dev";
@@ -151,7 +151,7 @@
 			compatible = "litex,i2s";
 			reg = <0xe000a800 0x20 0xb1000000 0x40000>;
 			interrupt-parent = <&intc0>;
-			interrupts = <6 2>;
+			interrupts = <9 2>;
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg-names = "control", "fifo";
@@ -163,7 +163,7 @@
 			compatible = "litex,i2s";
 			reg = <0xe000b000 0x20 0xb2000000 0x40000>;
 			interrupt-parent = <&intc0>;
-			interrupts = <7 2>;
+			interrupts = <10 2>;
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg-names = "control", "fifo";
@@ -242,6 +242,117 @@
 			        "ev_enable";
 			interrupt-parent = <&intc0>;
 			interrupts = <5 2>;
+			label = "fastvdma_2";
+			status = "disabled";
+		};
+		fastvdma_gpu_in_1: fastvdma@e000c800 {
+			compatible = "litex,fastvdma";
+			reg = <0xe000c800 0x4
+			       0xe000c804 0x1
+			       0xe000c808 0x1
+			       0xe000c80c 0x1
+			       0xe000c810 0x1
+			       0xe000c814 0x1
+			       0xe000c818 0x1
+			       0xe000c81c 0x1
+			       0xe000c820 0x1
+			       0xe000c824 0x1
+			       0xe000c828 0x1
+			       0xe000c82c 0x1
+			       0xe000c830 0x1
+			       0xe000c834 0x1
+			       0xe000c838 0x1>;
+			reg-names = "control",
+			        "status",
+			        "irq_mask",
+			        "irq_status",
+			        "read_base",
+			        "read_length",
+			        "read_count",
+			        "read_stride",
+			        "write_base",
+			        "write_length",
+			        "write_count",
+			        "write_stride",
+			        "ev_status",
+			        "ev_pending",
+			        "ev_enable";
+			interrupt-parent = <&intc0>;
+			interrupts = <6 2>;
+			label = "fastvdma_2";
+			status = "disabled";
+		};
+		fastvdma_gpu_in_2: fastvdma@e000d000 {
+			compatible = "litex,fastvdma";
+			reg = <0xe000d000 0x4
+			       0xe000d004 0x1
+			       0xe000d008 0x1
+			       0xe000d00c 0x1
+			       0xe000d010 0x1
+			       0xe000d014 0x1
+			       0xe000d018 0x1
+			       0xe000d01c 0x1
+			       0xe000d020 0x1
+			       0xe000d024 0x1
+			       0xe000d028 0x1
+			       0xe000d02c 0x1
+			       0xe000d030 0x1
+			       0xe000d034 0x1
+			       0xe000d038 0x1>;
+			reg-names = "control",
+			        "status",
+			        "irq_mask",
+			        "irq_status",
+			        "read_base",
+			        "read_length",
+			        "read_count",
+			        "read_stride",
+			        "write_base",
+			        "write_length",
+			        "write_count",
+			        "write_stride",
+			        "ev_status",
+			        "ev_pending",
+			        "ev_enable";
+			interrupt-parent = <&intc0>;
+			interrupts = <7 2>;
+			label = "fastvdma_2";
+			status = "disabled";
+		};
+		fastvdma_gpu_out: fastvdma@e000d800 {
+			compatible = "litex,fastvdma";
+			reg = <0xe000d800 0x4
+			       0xe000d804 0x1
+			       0xe000d808 0x1
+			       0xe000d80c 0x1
+			       0xe000d810 0x1
+			       0xe000d814 0x1
+			       0xe000d818 0x1
+			       0xe000d81c 0x1
+			       0xe000d820 0x1
+			       0xe000d824 0x1
+			       0xe000d828 0x1
+			       0xe000d82c 0x1
+			       0xe000d830 0x1
+			       0xe000d834 0x1
+			       0xe000d838 0x1>;
+			reg-names = "control",
+			        "status",
+			        "irq_mask",
+			        "irq_status",
+			        "read_base",
+			        "read_length",
+			        "read_count",
+			        "read_stride",
+			        "write_base",
+			        "write_length",
+			        "write_count",
+			        "write_stride",
+			        "ev_status",
+			        "ev_pending",
+			        "ev_enable";
+			interrupt-parent = <&intc0>;
+			interrupts = <8 2>;
 			label = "fastvdma_2";
 			status = "disabled";
 		};
