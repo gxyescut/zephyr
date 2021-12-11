@@ -121,6 +121,16 @@ static int fastvdma_litex_configure(const struct device *dev,
                     ~FASTVDMA_CTRL_WR_LOOP);
     }
 
+    /* disable reader sync */
+    if (cfg->source_handshake) {
+        control = litex_read(dev_cfg->control_addr, REG_SIZE);
+        litex_write(dev_cfg->control_addr, REG_SIZE, control | FASTVDMA_CTRL_RD_SYNC);
+    }
+    if (cfg->dest_handshake) {
+        control = litex_read(dev_cfg->control_addr, REG_SIZE);
+        litex_write(dev_cfg->control_addr, REG_SIZE, control | FASTVDMA_CTRL_WR_SYNC);
+    }
+
     /**
      * source_gather_count should be equal to dest_scatter_count.
      * FastVDMA requires length of each line and a number of lines (count)
@@ -210,8 +220,6 @@ static int fastvdma_litex_get_status(const struct device *dev, uint32_t channel,
 static int fastvdma_litex_init(const struct device *dev)
 {
     const struct fastvdma_dev_cfg *dev_cfg = DEV_CFG(dev);
-
-    litex_write(dev_cfg->control_addr, REG_SIZE, FASTVDMA_CTRL_WR_SYNC);
 
     dev_cfg->irq_config();
 
