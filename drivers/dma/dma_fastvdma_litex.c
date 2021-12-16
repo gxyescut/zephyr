@@ -276,7 +276,7 @@ static const struct dma_driver_api fastvdma_litex_driver_api = {
 \
     DEVICE_DT_INST_DEFINE(n,\
         &fastvdma_litex_init,\
-        device_pm_control_nop,\
+        NULL,\
         NULL, &dev_cfg_##n, POST_KERNEL,\
         CONFIG_KERNEL_INIT_PRIORITY_DEVICE,\
         &fastvdma_litex_driver_api);\
