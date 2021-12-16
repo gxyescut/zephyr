@@ -105,18 +105,22 @@ static int fastvdma_litex_configure(const struct device *dev,
 
     /* enable/disable read loop mode */
     if (block_cfg->source_gather_en) {
+        control = litex_read(dev_cfg->control_addr, REG_SIZE);
         litex_write(dev_cfg->control_addr, REG_SIZE, control |
                     FASTVDMA_CTRL_RD_LOOP);
     } else {
+        control = litex_read(dev_cfg->control_addr, REG_SIZE);
         litex_write(dev_cfg->control_addr, REG_SIZE, control &
                     ~FASTVDMA_CTRL_RD_LOOP);
     }
 
     /* enable/disable write loop mode */
     if (block_cfg->dest_scatter_en) {
+        control = litex_read(dev_cfg->control_addr, REG_SIZE);
         litex_write(dev_cfg->control_addr, REG_SIZE, control |
                     FASTVDMA_CTRL_WR_LOOP);
     } else {
+        control = litex_read(dev_cfg->control_addr, REG_SIZE);
         litex_write(dev_cfg->control_addr, REG_SIZE, control &
                     ~FASTVDMA_CTRL_WR_LOOP);
     }
