@@ -805,6 +805,15 @@ static int ov2640_set_resolution(const struct device *dev,
 
 	uint16_t w = img_width;
 	uint16_t h = img_height;
+	int clkrc = 0x81;
+
+	if (w > 1280 && h > 1024) {
+		clkrc = 0x86;
+	} else if (w > 1024 && h > 768) {
+		clkrc = 0x84;
+	} else if (w > 800 && h > 600) {
+		clkrc = 0x82;
+	}
 
 	/* Disable DSP */
 	ret |= ov2640_write_reg(dev, BANK_SEL, BANK_SEL_DSP);
@@ -818,7 +827,7 @@ static int ov2640_set_resolution(const struct device *dev,
 
 	/* Set CLKRC */
 	ret |= ov2640_write_reg(dev, BANK_SEL, BANK_SEL_SENSOR);
-	ret |= ov2640_write_reg(dev, CLKRC, 0x87);
+	ret |= ov2640_write_reg(dev, CLKRC, clkrc);
 
 	/* Write DSP input registers */
 	ov2640_write_all(dev, uxga_regs, ARRAY_SIZE(uxga_regs));
