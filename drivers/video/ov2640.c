@@ -956,37 +956,37 @@ static int ov2640_set_ctrl(const struct device *dev,
 
 	switch (cid) {
 	case VIDEO_CID_HFLIP:
-		ret |= ov2640_set_horizontal_mirror(dev, (int)value);
+		ret |= ov2640_set_horizontal_mirror(dev, *(int*)value);
 		break;
 	case VIDEO_CID_VFLIP:
-		ret |= ov2640_set_vertical_flip(dev, (int)value);
+		ret |= ov2640_set_vertical_flip(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CLK_DIV:
-		ret |= ov2640_set_clock_divider(dev, (int)value);
+		ret |= ov2640_set_clock_divider(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CAMERA_EXPOSURE:
-		ret |= ov2640_set_exposure_ctrl(dev, (int)value);
+		ret |= ov2640_set_exposure_ctrl(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CAMERA_GAIN:
-		ret |= ov2640_set_gain_ctrl(dev, (int)value);
+		ret |= ov2640_set_gain_ctrl(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CAMERA_BRIGHTNESS:
-		ret |= ov2640_set_brightness(dev, (int)value);
+		ret |= ov2640_set_brightness(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CAMERA_SATURATION:
-		ret |= ov2640_set_saturation(dev, (int)value);
+		ret |= ov2640_set_saturation(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CAMERA_WHITE_BAL:
-		ret |= ov2640_set_white_bal(dev, (int)value);
+		ret |= ov2640_set_white_bal(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CAMERA_CONTRAST:
-		ret |= ov2640_set_contrast(dev, (int)value);
+		ret |= ov2640_set_contrast(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CAMERA_COLORBAR:
-		ret |= ov2640_set_colorbar(dev, (int)value);
+		ret |= ov2640_set_colorbar(dev, *(int*)value);
 		break;
 	case VIDEO_CID_CAMERA_QUALITY:
-		ret |= ov2640_set_quality(dev, (int)value);
+		ret |= ov2640_set_quality(dev, *(int*)value);
 		break;
 	default:
 		return -ENOTSUP;

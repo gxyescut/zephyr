@@ -231,7 +231,7 @@ static inline int video_sw_generator_set_ctrl(const struct device *dev,
 
 	switch (cid) {
 	case VIDEO_CID_VFLIP:
-		data->ctrl_vflip = (bool)value;
+		data->ctrl_vflip = *(bool*)value;
 		break;
 	default:
 		return -ENOTSUP;
