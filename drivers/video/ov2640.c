@@ -798,6 +798,25 @@ static int ov2640_set_vertical_flip(const struct device *dev, int enable)
 	return ret;
 }
 
+static int ov2640_set_clock_divider(const struct device *dev, int clkrc)
+{
+	int ret = 0;
+
+	if (clkrc < 1) {
+		LOG_ERR("Can't set clock divider lower than 1!");
+		return -1;
+	} else if (clkrc > 64) {
+		LOG_ERR("Can't set clock divider greater than 64!");
+		return -1;
+	}
+
+	/* Set CLKRC */
+	ret |= ov2640_write_reg(dev, BANK_SEL, BANK_SEL_SENSOR);
+	ret |= ov2640_write_reg(dev, CLKRC, 0x80 | (clkrc - 1));
+
+	return ret;
+}
+
 static int ov2640_set_resolution(const struct device *dev,
 				uint16_t img_width, uint16_t img_height)
 {
@@ -941,6 +960,9 @@ static int ov2640_set_ctrl(const struct device *dev,
 		break;
 	case VIDEO_CID_VFLIP:
 		ret |= ov2640_set_vertical_flip(dev, (int)value);
+		break;
+	case VIDEO_CID_CLK_DIV:
+		ret |= ov2640_set_clock_divider(dev, (int)value);
 		break;
 	case VIDEO_CID_CAMERA_EXPOSURE:
 		ret |= ov2640_set_exposure_ctrl(dev, (int)value);

@@ -39,6 +39,7 @@ extern "C" {
 /* Generic class control IDs */
 #define VIDEO_CID_HFLIP			(VIDEO_CTRL_CLASS_GENERIC + 0) /* Mirror the picture horizontally */
 #define VIDEO_CID_VFLIP			(VIDEO_CTRL_CLASS_GENERIC + 1) /* Mirror the picture vertically */
+#define VIDEO_CID_CLK_DIV			(VIDEO_CTRL_CLASS_GENERIC + 2) /* Camera clock divider */
 
 /* Camera class control IDs */
 #define VIDEO_CID_CAMERA_EXPOSURE	(VIDEO_CTRL_CLASS_CAMERA + 0)
