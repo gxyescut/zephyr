@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #define FASTVDMA_IRQ_WR_EN   BIT(0)
 #define FASTVDMA_IRQ_RD_EN   BIT(1)
 
