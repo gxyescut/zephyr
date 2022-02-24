@@ -3,6 +3,7 @@
 zephyr_library()
 
 zephyr_library_sources_ifdef(CONFIG_HT16K33 ht16k33.c)
+zephyr_library_sources_ifdef(CONFIG_FOMU_SBLED fomu_sbled.c)
 zephyr_library_sources_ifdef(CONFIG_LED_GPIO led_gpio.c)
 zephyr_library_sources_ifdef(CONFIG_LED_PWM led_pwm.c)
 zephyr_library_sources_ifdef(CONFIG_LP3943 lp3943.c)

@@ -1,0 +1,7 @@
+# Copyright (c) 2022 Antmicro
+# SPDX-License-Identifier: Apache-2.0
+
+config FOMU_SBLED
+	bool "Fomu SBLED driver"
+	help
+	  Enable SBLED driver for Fomu.

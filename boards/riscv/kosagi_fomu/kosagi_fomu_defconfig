@@ -1,0 +1,16 @@
+#
+# Copyright (c) 2022 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+CONFIG_BOARD_KOSAGI_FOMU=y
+CONFIG_SOC_RISCV32_KOSAGI_FOMU=y
+
+CONFIG_VEXRISCV_LITEX_IRQ=y
+CONFIG_LITEX_TIMER=y
+
+CONFIG_LED=y
+CONFIG_FOMU_SBLED=y
+
+CONFIG_XIP=y
