@@ -12,6 +12,8 @@
 	compatible = "kosagi,fomu";
 
 	chosen {
+		zephyr,console = &fomu_uart;
+		zephyr,shell-uart = &fomu_uart;
 		zephyr,sram = &ram0;
 		zephyr,flash = &flash0;
 	};
@@ -55,8 +57,17 @@
 			"ctrl",
 			"raw";
 	};
-};
 
+	fomu_uart: serial@e0001800 {
+		compatible = "fomu,uart";
+		interrupt-parent = <&intc0>;
+		interrupts = <3 0>;
+		reg = <0xe0004800 0x18>;
+		reg-names = "control";
+		label = "uart0";
+		status = "okay";
+	};
+};
 
 &timer0 {
 	reg = <0xe0002800 0x10

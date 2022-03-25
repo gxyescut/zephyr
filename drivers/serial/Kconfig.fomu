@@ -1,0 +1,9 @@
+# Copyright (c) 2022 Antmicro <www.antmicro.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config UART_FOMU
+	bool "Fomu serial driver"
+	depends on SOC_RISCV32_KOSAGI_FOMU
+	select SERIAL_HAS_DRIVER
+	help
+	  This option enables Fomu serial driver.

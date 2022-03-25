@@ -167,6 +167,8 @@ source "drivers/serial/Kconfig.rpi_pico"
 
 source "drivers/serial/Kconfig.litex"
 
+source "drivers/serial/Kconfig.fomu"
+
 source "drivers/serial/Kconfig.rtt"
 
 source "drivers/serial/Kconfig.xlnx"
