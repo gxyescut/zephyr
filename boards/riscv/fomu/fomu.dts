@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2022 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <riscv32-litex-vexriscv.dtsi>
+
+/{
+	model = "Fomu ICE40UP5K with LiteX Vexriscv";
+	compatible = "kosagi,fomu";
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &ram0;
+		zephyr,flash = &flash0;
+	};
+
+	cpus {
+		cpu@0 {
+			clock-frequency = <12000000>;
+			riscv,isa = "rv32im";
+		};
+	};
+
+	ram0: memory@10000000 {
+		device_type = "memory";
+		reg = <0x10002000 0x0001f000>;
+	};
+
+
+	fake_spi: spi@dead {
+		reg = <0xdead 0xdead 0x20040000 0x00100000>;
+		reg-names = "dummy", "mem";
+		label = "fake-spi";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		flash0: flash@20040000 {
+			compatible = "jedec,spi-nor";
+			label = "memory mapped spiflash";
+			reg = <0x20040000>;
+			size = <0x00100000>;
+			status = "okay";
+		};
+	};
+
+	led: led@e0006800 {
+		compatible = "fomu,sbled";
+		reg = <0xe0006800 0x4
+			0xe0006804 0x4
+			0xe0006808 0x4
+			0xe000680c 0x4>;
+		reg-names = "dat",
+			"addr",
+			"ctrl",
+			"raw";
+	};
+
+	fomu_uart: serial@e0001800 {
+		compatible = "fomu,uart";
+		interrupt-parent = <&intc0>;
+		interrupts = <3 0>;
+		reg = <0xe0004800 0x18>;
+		reg-names = "control";
+		label = "uart0";
+		status = "okay";
+	};
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&timer0 {
+	reg = <0xe0002800 0x10
+		0xe0002810 0x10
+		0xe0002820 0x4
+		0xe0002824 0x4
+		0xe0002828 0x10
+		0xe0002838 0x4
+		0xe000283c 0x4
+		0xe0002840 0x4
+		0xe0002844 0x4
+		0xe0002848 0x20>;
+	reg-names = "load",
+		"reload",
+		"en",
+		"update_value",
+		"value",
+		"ev_status",
+		"ev_pending",
+		"ev_enable",
+		"uptime_latch",
+		"uptime_cycles";
+	interrupts = <2 0>; // v1: <0 0>, v2: <2 0>
+	status = "okay";
+};

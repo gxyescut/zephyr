@@ -1,0 +1,27 @@
+# Copyright (c) 2022 Antmicro <www.antmicro.com>
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_RISCV32_FOMU
+
+config SOC
+	default "fomu"
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 12000000
+
+config RISCV_HAS_CPU_IDLE
+	bool
+
+config RISCV_HAS_PLIC
+	bool
+
+config NUM_IRQS
+	default 12
+
+config RISCV_ATOMICS_ISA
+	default n
+
+config LITEX_CSR_DATA_WIDTH
+	default 8
+
+endif # SOC_RISCV32_FOMU

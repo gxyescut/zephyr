@@ -33,7 +33,7 @@ config SWERV_PIC
 
 config VEXRISCV_LITEX_IRQ
 	bool "VexRiscv LiteX Interrupt controller"
-	depends on SOC_RISCV32_LITEX_VEXRISCV
+	depends on SOC_RISCV32_LITEX_VEXRISCV || SOC_RISCV32_FOMU
 	help
 	  IRQ implementation for LiteX VexRiscv
 
