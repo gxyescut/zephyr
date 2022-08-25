@@ -10,18 +10,20 @@ tests:
     extra_configs:
       - CONFIG_MINIMAL_LIBC=y
   cpp.main.newlib:
+    tags: cpp newlib
     filter: TOOLCHAIN_HAS_NEWLIB == 1
     min_ram: 32
     extra_configs:
       - CONFIG_NEWLIB_LIBC=y
   cpp.main.newlib_nano:
+    tags: cpp newlib
     filter: TOOLCHAIN_HAS_NEWLIB == 1 and CONFIG_HAS_NEWLIB_LIBC_NANO
     min_ram: 24
     extra_configs:
       - CONFIG_NEWLIB_LIBC=y
       - CONFIG_NEWLIB_LIBC_NANO=y
   cpp.main.picolibc:
-    tags: picolibc
+    tags: cpp picolibc
     filter: CONFIG_PICOLIBC_SUPPORTED
     extra_configs:
       - CONFIG_PICOLIBC=y
