@@ -71,8 +71,8 @@
  * @param pin Pin (0..31).
  */
 #define GECKO_PSEL(fun, port, pin)                                                                 \
-	(((GECKO_PORT_##port & GECKO_PORT_MSK) << GECKO_PORT_POS) |                                     \
-	 ((GECKO_PIN(##pin##) & GECKO_PIN_MSK) << GECKO_PIN_POS) |                                        \
+	(((GECKO_PORT_##port & GECKO_PORT_MSK) << GECKO_PORT_POS) |                                \
+	 ((GECKO_PIN(##pin##) & GECKO_PIN_MSK) << GECKO_PIN_POS) |                                 \
 	 ((GECKO_FUN_##fun & GECKO_FUN_MSK) << GECKO_FUN_POS))
 
 /**
