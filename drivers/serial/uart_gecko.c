@@ -11,6 +11,8 @@
 #include <em_usart.h>
 #include <em_cmu.h>
 #include <soc.h>
+#include <zephyr/pm/pm.h>
+#include <zephyr/pm/policy.h>
 
 #ifdef CONFIG_PINCTRL
 #include <zephyr/drivers/pinctrl.h>
@@ -126,6 +128,8 @@ static void uart_gecko_poll_out(const struct device *dev, unsigned char c)
 {
 	const struct uart_gecko_config *config = dev->config;
 
+	pm_policy_state_lock_get(PM_STATE_STANDBY, PM_ALL_SUBSTATES);
+
 	USART_Tx(config->base, c);
 }
 
@@ -190,6 +194,8 @@ static void uart_gecko_irq_tx_enable(const struct device *dev)
 	const struct uart_gecko_config *config = dev->config;
 	uint32_t mask = USART_IEN_TXBL | USART_IEN_TXC;
 
+	pm_policy_state_lock_get(PM_STATE_STANDBY, PM_ALL_SUBSTATES);
+
 	USART_IntEnable(config->base, mask);
 }
 
@@ -199,6 +205,7 @@ static void uart_gecko_irq_tx_disable(const struct device *dev)
 	uint32_t mask = USART_IEN_TXBL | USART_IEN_TXC;
 
 	USART_IntDisable(config->base, mask);
+	pm_policy_state_lock_put(PM_STATE_STANDBY, PM_ALL_SUBSTATES);
 }
 
 static int uart_gecko_irq_tx_complete(const struct device *dev)
@@ -208,7 +215,11 @@ static int uart_gecko_irq_tx_complete(const struct device *dev)
 
 	USART_IntClear(config->base, USART_IF_TXC);
 
-	return (flags & USART_IF_TXC) != 0U;
+	if ((flags & USART_IF_TXC) != 0U) {
+		pm_policy_state_lock_put(PM_STATE_STANDBY, PM_ALL_SUBSTATES);
+		return 1;
+	}
+	return 0;
 }
 
 static int uart_gecko_irq_tx_ready(const struct device *dev)
