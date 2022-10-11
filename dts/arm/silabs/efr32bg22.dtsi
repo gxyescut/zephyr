@@ -163,6 +163,12 @@
 		 */
 		compatible = "silabs,gecko-pinctrl";
 	};
+
+	hwinfo: hwinfo {
+		compatible = "silabs,gecko-hwinfo";
+		status = "disabled";
+	};
+
 };
 
 &nvic {
