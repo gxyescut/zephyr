@@ -134,6 +134,11 @@ choice SOC_GECKO_EMU_DCDC_MODE
 		bool "Bypass"
 endchoice
 
+config SOC_GECKO_SEMAILBOX
+	bool
+	help
+	  TRNG is accessed through se mailbox
+
 config SOC_GECKO_DEV_INIT
 	bool
 	help
