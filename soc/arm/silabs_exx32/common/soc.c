@@ -30,6 +30,11 @@
 #include <sl_device_init_lfxo.h>
 #include <sl_device_init_nvic.h>
 
+#ifdef CONFIG_PM
+#include <sl_hfxo_manager.h>
+#include <sl_power_manager.h>
+#endif
+
 #endif
 
 LOG_MODULE_REGISTER(soc, CONFIG_SOC_LOG_LEVEL);
@@ -44,6 +49,13 @@ static CMU_HFXOInit_TypeDef hfxoInit = CMU_HFXOINIT_DEFAULT;
  * @brief Initialization parameters for the external low frequency oscillator
  */
 static CMU_LFXOInit_TypeDef lfxoInit = CMU_LFXOINIT_DEFAULT;
+#endif
+
+#ifdef CONFIG_SOC_GECKO_DEV_INIT
+#ifdef CONFIG_PM
+void sl_hfxo_manager_irq_handler(void);
+void initIRQ(void);
+#endif
 #endif
 
 /**
@@ -204,12 +216,22 @@ static int silabs_exx32_init(const struct device *arg)
 	CHIP_Init();
 	sl_board_preinit();
 	sl_device_init_dcdc();
+#ifdef CONFIG_PM
+	sl_device_init_nvic();
+	sl_hfxo_manager_init_hardware();
+#endif
 	sl_device_init_hfxo();
 	sl_device_init_lfxo();
 	sl_device_init_dpll();
 	sl_device_init_clocks();
 	sl_device_init_emu();
 	sl_board_init();
+#ifdef CONFIG_PM
+	sl_power_manager_init();
+	sl_sleeptimer_init();
+	sl_hfxo_manager_init();
+	initIRQ();
+#endif
 #else
 
 	/* handle chip errata */
@@ -237,5 +259,16 @@ static int silabs_exx32_init(const struct device *arg)
 	irq_unlock(oldLevel);
 	return 0;
 }
+
+#ifdef CONFIG_SOC_GECKO_DEV_INIT
+#ifdef CONFIG_PM
+void initIRQ(void)
+{
+	IRQ_DIRECT_CONNECT(HFXO0_IRQn, 2, sl_hfxo_manager_irq_handler, 0);
+
+	irq_enable(HFXO0_IRQn);
+}
+#endif
+#endif
 
 SYS_INIT(silabs_exx32_init, PRE_KERNEL_1, 0);
