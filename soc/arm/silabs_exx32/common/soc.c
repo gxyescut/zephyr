@@ -54,7 +54,7 @@ static CMU_LFXOInit_TypeDef lfxoInit = CMU_LFXOINIT_DEFAULT;
 #ifdef CONFIG_SOC_GECKO_DEV_INIT
 #ifdef CONFIG_PM
 void sl_hfxo_manager_irq_handler(void);
-void initIRQ(void);
+void init_hfxo_irq(void);
 #endif
 #endif
 
@@ -262,7 +262,7 @@ static int silabs_exx32_init(const struct device *arg)
 
 #ifdef CONFIG_SOC_GECKO_DEV_INIT
 #ifdef CONFIG_PM
-void initIRQ(void)
+void init_hfxo_irq(void)
 {
 	IRQ_DIRECT_CONNECT(HFXO0_IRQn, 2, sl_hfxo_manager_irq_handler, 0);
 
