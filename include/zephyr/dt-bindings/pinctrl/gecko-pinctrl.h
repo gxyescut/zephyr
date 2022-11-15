@@ -82,7 +82,7 @@
  * @param loc Location.
  */
 #define GECKO_LOC(fun, loc)                                                                        \
-	(((loc & GECKO_LOC_MSK) << GECKO_LOC_POS) |                                                \
-	 ((GECKO_FUN_##fun & GECKO_FUN_MSK) << GECKO_FUN_POS))
+	(((GECKO_LOCATION(##loc##) & GECKO_LOC_MSK) << GECKO_LOC_POS) |                                                \
+	 ((GECKO_FUN_##fun##_LOC & GECKO_FUN_MSK) << GECKO_FUN_POS))
 
 #endif /* ZEPHYR_INCLUDE_DT_BINDINGS_PINCTRL_GECKO_PINCTRL_H_ */
