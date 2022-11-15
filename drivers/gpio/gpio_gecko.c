@@ -27,11 +27,10 @@
 #else
 #define GECKO_GPIO_PORT_ADDR_SPACE_SIZE sizeof(GPIO_P_TypeDef)
 #endif /* defined(CONFIG_SOC_SERIES_EFM32HG) || defined(CONFIG_SOC_SERIES_EFM32WG) */
-/* Assumption:
- * 1. Address space of the first GPIO port starts at GPIO peripheral
- *    base address which is taken from GPIO_BASE HAL macro
+/* Assumption for calculating gpio index:
+ * 1. Address space of the first GPIO port is the address space for GPIO port A
  */
-#define GET_GECKO_GPIO_INDEX(id) (DT_INST_REG_ADDR(id) - GPIO_BASE) \
+#define GET_GECKO_GPIO_INDEX(id) (DT_INST_REG_ADDR(id) - DT_REG_ADDR(DT_NODELABEL(gpioa))) \
 	/ GECKO_GPIO_PORT_ADDR_SPACE_SIZE
 #endif /* DT_NODE_HAS_PROP(id, peripheral_id) */
 
