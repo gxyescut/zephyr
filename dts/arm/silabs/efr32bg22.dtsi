@@ -29,7 +29,7 @@
 			device_type = "cpu";
 			compatible = "arm,cortex-m33";
 			reg = <0>;
-			cpu-power-states = < &standby >;
+			cpu-power-states = <&standby>;
 		};
 	};
 
