@@ -13,7 +13,7 @@
 			/* configure PE.11 as UART_RX and PE.10 as UART_TX */
 			psels = <GECKO_PSEL(UART_TX, E, 10)>,
 				<GECKO_PSEL(UART_RX, E, 11)>,
-				<GECKO_LOC(UART_LOC, GECKO_LOCATION(0))>;
+				<GECKO_LOC(UART, 0)>;
 		};
 	};
 
@@ -23,7 +23,7 @@
 			/* configure PA.6 as UART_RX and PA.5 as UART_TX */
 			psels = <GECKO_PSEL(UART_TX, A, 5)>,
 				<GECKO_PSEL(UART_RX, A, 6)>,
-				<GECKO_LOC(UART_LOC, GECKO_LOCATION(1))>;
+				<GECKO_LOC(UART, 1)>;
 		};
 	};
 };
