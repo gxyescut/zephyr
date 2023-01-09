@@ -21,7 +21,7 @@
 
 LOG_MODULE_REGISTER(counter_gecko, CONFIG_COUNTER_LOG_LEVEL);
 
-#define STIMER_MAX_VALUE (_RTCC_CNT_MASK)
+#define STIMER_MAX_VALUE INT_MAX
 #define STIMER_ALARM_NUM 2
 
 struct counter_gecko_config {
@@ -270,7 +270,14 @@ BUILD_ASSERT((DT_INST_PROP(0, prescaler) > 0U) && (DT_INST_PROP(0, prescaler) <=
 
 static void counter_gecko_0_irq_config(void)
 {
-	IRQ_DIRECT_CONNECT(DT_INST_IRQN(0), DT_INST_IRQ(0, priority), RTCC_IRQHandler, 0);
+#ifdef CONFIG_SOC_SERIES_EFR32MG24
+#define IRQHandler SYSRTC_APP_IRQHandler
+#else
+#define IRQHandler RTCC_IRQHandler
+#endif
+
+	IRQ_DIRECT_CONNECT(DT_INST_IRQN(0), DT_INST_IRQ(0, priority), IRQHandler, 0);
+
 	irq_enable(DT_INST_IRQN(0));
 }
 
