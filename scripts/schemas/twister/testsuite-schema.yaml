@@ -32,6 +32,9 @@ mapping:
       "extra_args":
         type: str
         required: false
+      "run_robot_tests":
+        type: bool
+        required: false
       "extra_sections":
         type: str
         required: false
@@ -179,6 +182,9 @@ mapping:
             required: false
           "extra_args":
             type: str
+            required: false
+          "run_robot_tests":
+            type: bool
             required: false
           "extra_configs":
             type: seq

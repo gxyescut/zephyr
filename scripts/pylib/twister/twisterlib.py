@@ -422,6 +422,7 @@ class Handler:
         self.binary = None
         self.pid_fn = None
         self.call_make_run = False
+        self.call_renode_test = False
 
         self.name = instance.name
         self.instance = instance
@@ -512,6 +513,7 @@ class Handler:
 
 
 class BinaryHandler(Handler):
+
     def __init__(self, instance, type_str):
         """Constructor
 
@@ -591,6 +593,8 @@ class BinaryHandler(Handler):
 
         if self.call_make_run:
             command = [self.generator_cmd, "run"]
+        elif self.call_renode_test:
+            command = [self.generator_cmd, "run_renode_test"]
         elif self.call_west_flash:
             command = ["west", "flash", "--skip-rebuild", "-d", self.build_dir]
         else:
@@ -626,6 +630,26 @@ class BinaryHandler(Handler):
         if self.ubsan:
             env["UBSAN_OPTIONS"] = "log_path=stdout:halt_on_error=1:" + \
                                   env.get("UBSAN_OPTIONS", "")
+
+        if self.call_renode_test:
+            with subprocess.Popen(command, stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT, cwd=self.build_dir, env=env) as cmake_proc:
+                out, _ = cmake_proc.communicate()
+
+                self.instance.execution_time = time.time() - start_time
+
+                if cmake_proc.returncode == 0:
+                    self.instance.status = "passed"
+                else:
+                    logger.error("Renode robot test failure: %s for %s" %
+                                 (self.sourcedir, self.instance.platform.name))
+                    self.instance.status = "failed"
+
+                if out:
+                    with open(os.path.join(self.build_dir, self.log), "wt") as log:
+                        log_msg = out.decode(sys.getdefaultencoding())
+                        log.write(log_msg)
+                return
 
         with subprocess.Popen(command, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, cwd=self.build_dir, env=env) as proc:
@@ -1781,6 +1805,7 @@ class TestSuite(DisablePyTestCollectionMixin):
         self.extra_sections = None
         self.integration_platforms = []
         self.ztest_suite_names = []
+        self.run_robot_tests = False
 
 
     def add_testcase(self, name):
@@ -2212,7 +2237,7 @@ class TestInstance(DisablePyTestCollectionMixin):
 
         target_ready = bool(self.testsuite.type == "unit" or \
                         self.platform.type == "native" or \
-                        self.platform.simulation in ["mdb-nsim", "nsim", "renode", "qemu", "tsim", "armfvp", "xt-sim"] or \
+                        self.platform.simulation in ["mdb-nsim", "nsim", "renode", "qemu", "tsim", "armfvp", "xt-sim", "renode-test"] or \
                         filter == 'runnable')
 
         if self.platform.simulation == "nsim":
@@ -2225,6 +2250,10 @@ class TestInstance(DisablePyTestCollectionMixin):
 
         if self.platform.simulation == "renode":
             if not find_executable("renode"):
+                target_ready = False
+
+        if self.platform.simulation == "renode-test":
+            if not find_executable("renode-test"):
                 target_ready = False
 
         if self.platform.simulation == "tsim":
@@ -2647,10 +2676,15 @@ class ProjectBuilder(FilterBuilder):
             handler.binary = os.path.join(instance.build_dir, "zephyr", "zephyr.exe")
             instance.handler = handler
         elif instance.platform.simulation == "renode":
-            if find_executable("renode"):
-                instance.handler = BinaryHandler(instance, "renode")
-                instance.handler.pid_fn = os.path.join(instance.build_dir, "renode.pid")
-                instance.handler.call_make_run = True
+            if not instance.testsuite.run_robot_tests:
+                if find_executable("renode"):
+                    instance.handler = BinaryHandler(instance, "renode")
+                    instance.handler.pid_fn = os.path.join(instance.build_dir, "renode.pid")
+                    instance.handler.call_make_run = True
+            else:
+                if find_executable("renode-test"):
+                    instance.handler = BinaryHandler(instance, "renode-test")
+                    instance.handler.call_renode_test = True
         elif instance.platform.simulation == "tsim":
             instance.handler = BinaryHandler(instance, "tsim")
             instance.handler.call_make_run = True
@@ -3025,7 +3059,8 @@ class TestPlan(DisablePyTestCollectionMixin):
                        "filter": {"type": "str"},
                        "harness": {"type": "str"},
                        "harness_config": {"type": "map", "default": {}},
-                       "seed": {"type": "int", "default": 0}
+                       "seed": {"type": "int", "default": 0},
+                       "run_robot_tests": {"type" : "bool", "default": False}
                        }
 
     SAMPLE_FILENAME = 'sample.yaml'
@@ -3066,6 +3101,7 @@ class TestPlan(DisablePyTestCollectionMixin):
         self.retry_build_errors = False
         self.suite_name_check = True
         self.seed = 0
+        self.run_robot_tests = False
 
         # Keep track of which test cases we've filtered out and why
         self.testsuites = {}
@@ -3353,6 +3389,52 @@ class TestPlan(DisablePyTestCollectionMixin):
 
         return toolchain
 
+    def create_testsuite(self, parsed_data, ts_path, root, workdir, name):
+        ts = TestSuite(root, workdir, name)
+        ts_dict = parsed_data.get_test(name, self.testsuite_valid_keys)
+
+        ts.source_dir = ts_path
+        ts.yamlfile = ts_path
+
+        ts.type = ts_dict["type"]
+        ts.tags = ts_dict["tags"]
+        ts.extra_args = ts_dict["extra_args"]
+        ts.extra_configs = ts_dict["extra_configs"]
+        ts.arch_allow = ts_dict["arch_allow"]
+        ts.arch_exclude = ts_dict["arch_exclude"]
+        ts.skip = ts_dict["skip"]
+        ts.platform_exclude = ts_dict["platform_exclude"]
+        ts.platform_allow = ts_dict["platform_allow"]
+        ts.platform_type = ts_dict["platform_type"]
+        ts.toolchain_exclude = ts_dict["toolchain_exclude"]
+        ts.toolchain_allow = ts_dict["toolchain_allow"]
+        ts.ts_filter = ts_dict["filter"]
+        ts.timeout = ts_dict["timeout"]
+        ts.harness = ts_dict["harness"]
+        ts.harness_config = ts_dict["harness_config"]
+        if ts.harness == 'console' and not ts.harness_config:
+            raise Exception('Harness config error: console harness defined without a configuration.')
+        ts.build_only = ts_dict["build_only"]
+        ts.build_on_all = ts_dict["build_on_all"]
+        ts.slow = ts_dict["slow"]
+        ts.min_ram = ts_dict["min_ram"]
+        ts.modules = ts_dict["modules"]
+        ts.depends_on = ts_dict["depends_on"]
+        ts.min_flash = ts_dict["min_flash"]
+        ts.extra_sections = ts_dict["extra_sections"]
+        ts.integration_platforms = ts_dict["integration_platforms"]
+        ts.seed = ts_dict["seed"]
+        ts.run_robot_tests = ts_dict["run_robot_tests"]
+
+        testcases = ts_dict.get("testcases", [])
+        if testcases:
+            for tc in testcases:
+                ts.add_testcase(name=f"{name}.{tc}")
+        else:
+            ts.parse_subcases(ts_path)
+
+        return ts
+
     def add_testsuites(self, testsuite_filter=[]):
         for root in self.roots:
             root = os.path.abspath(root)
@@ -3378,50 +3460,14 @@ class TestPlan(DisablePyTestCollectionMixin):
                     ts_path = os.path.dirname(ts_path)
                     workdir = os.path.relpath(ts_path, root)
 
-                    for name in parsed_data.tests.keys():
-                        ts = TestSuite(root, workdir, name)
+                    keys = parsed_data.tests.keys()
 
-                        ts_dict = parsed_data.get_test(name, self.testsuite_valid_keys)
+                    robot_files = glob.glob(root + "/*.robot")
+                    if robot_files:
+                        parsed_data.tests[min(keys, key=len) + "-renode-test"] = {'tags': 'renode-robot-test', 'run_robot_tests': True}
 
-                        ts.source_dir = ts_path
-                        ts.yamlfile = ts_path
-
-                        ts.type = ts_dict["type"]
-                        ts.tags = ts_dict["tags"]
-                        ts.extra_args = ts_dict["extra_args"]
-                        ts.extra_configs = ts_dict["extra_configs"]
-                        ts.arch_allow = ts_dict["arch_allow"]
-                        ts.arch_exclude = ts_dict["arch_exclude"]
-                        ts.skip = ts_dict["skip"]
-                        ts.platform_exclude = ts_dict["platform_exclude"]
-                        ts.platform_allow = ts_dict["platform_allow"]
-                        ts.platform_type = ts_dict["platform_type"]
-                        ts.toolchain_exclude = ts_dict["toolchain_exclude"]
-                        ts.toolchain_allow = ts_dict["toolchain_allow"]
-                        ts.ts_filter = ts_dict["filter"]
-                        ts.timeout = ts_dict["timeout"]
-                        ts.harness = ts_dict["harness"]
-                        ts.harness_config = ts_dict["harness_config"]
-                        if ts.harness == 'console' and not ts.harness_config:
-                            raise Exception('Harness config error: console harness defined without a configuration.')
-                        ts.build_only = ts_dict["build_only"]
-                        ts.build_on_all = ts_dict["build_on_all"]
-                        ts.slow = ts_dict["slow"]
-                        ts.min_ram = ts_dict["min_ram"]
-                        ts.modules = ts_dict["modules"]
-                        ts.depends_on = ts_dict["depends_on"]
-                        ts.min_flash = ts_dict["min_flash"]
-                        ts.extra_sections = ts_dict["extra_sections"]
-                        ts.integration_platforms = ts_dict["integration_platforms"]
-                        ts.seed = ts_dict["seed"]
-
-                        testcases = ts_dict.get("testcases", [])
-                        if testcases:
-                            for tc in testcases:
-                                ts.add_testcase(name=f"{name}.{tc}")
-                        else:
-                            ts.parse_subcases(ts_path)
-
+                    for name in keys:
+                        ts = self.create_testsuite(parsed_data, ts_path, root, workdir, name)
                         if testsuite_filter:
                             if ts.name and ts.name in testsuite_filter:
                                 self.testsuites[ts.name] = ts

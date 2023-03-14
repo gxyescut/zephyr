@@ -11,12 +11,43 @@ set(RENODE_FLAGS
   --pid-file renode.pid
   )
 
+set(RENODE_COMMAND
+  -e '$$bin=@${APPLICATION_BINARY_DIR}/zephyr/${KERNEL_ELF_NAME}\\\; include @${RENODE_SCRIPT}\\\; s'
+  )
+
 add_custom_target(run_renode
   COMMAND
   ${RENODE}
   ${RENODE_FLAGS}
-  -e '$$bin=@${APPLICATION_BINARY_DIR}/zephyr/${KERNEL_ELF_NAME}\; include @${RENODE_SCRIPT}\; s'
+  ${RENODE_COMMAND}
   WORKING_DIRECTORY ${APPLICATION_BINARY_DIR}
   DEPENDS ${logical_target_for_zephyr_elf}
   USES_TERMINAL
   )
+
+find_program(
+  RENODE_TEST
+  renode-test
+  )
+
+set(RENODE_TEST_FLAGS
+  --variable ELF:@${APPLICATION_BINARY_DIR}/zephyr/${KERNEL_ELF_NAME}
+  --variable RESC:@${RENODE_SCRIPT}
+  --variable UART:${RENODE_UART}
+  )
+
+set(
+  ROBOT_FILES
+  *.robot
+  )
+
+add_custom_target(run_renode_test
+  COMMAND
+  ${RENODE_TEST}
+  ${RENODE_TEST_FLAGS}
+  ${APPLICATION_SOURCE_DIR}/${ROBOT_FILES}
+  WORKING_DIRECTORY ${APPLICATION_BINARY_DIR}
+  DEPENDS ${logical_target_for_zephyr_elf}
+  USES_TERMINAL
+  )
+
