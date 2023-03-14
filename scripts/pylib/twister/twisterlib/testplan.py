@@ -437,10 +437,16 @@ class TestPlan:
 
                     subcases, ztest_suite_names = scan_testsuite_path(suite_path)
 
-                    for name in parsed_data.scenarios.keys():
+                    keys = parsed_data.scenarios.keys()
+                    robot_files = glob.glob(root + "/*.robot")
+                    if robot_files:
+                        parsed_data.scenarios[min(keys, key=len) + "-renode-test"] = {'tags': 'introduction', 'run_robot_tests': True}
+ 
+                    for name in keys:
                         suite_dict = parsed_data.get_scenario(name)
                         suite = TestSuite(root, suite_path, name, data=suite_dict)
                         suite.add_subcases(suite_dict, subcases, ztest_suite_names)
+
                         if testsuite_filter:
                             if suite.name and suite.name in testsuite_filter:
                                 self.testsuites[suite.name] = suite

@@ -47,6 +47,9 @@ mapping:
         required: false
         sequence:
           - type: str
+      "run_robot_tests":
+        type: bool
+        required: false
       "extra_sections":
         type: str
         required: false

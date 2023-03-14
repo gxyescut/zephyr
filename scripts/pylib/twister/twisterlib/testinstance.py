@@ -189,7 +189,7 @@ class TestInstance:
                         self.platform.simulation in SUPPORTED_SIMS or \
                         filter == 'runnable')
 
-        for sim in ['nsim', 'mdb-nsim', 'renode', 'tsim', 'native']:
+        for sim in ['nsim', 'mdb-nsim', 'renode', 'tsim', 'native', 'renode-test']:
             if self.platform.simulation == sim and self.platform.simulation_exec:
                 if not shutil.which(self.platform.simulation_exec):
                     target_ready = False

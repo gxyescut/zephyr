@@ -38,7 +38,7 @@ except ImportError as capture_error:
 logger = logging.getLogger('twister')
 logger.setLevel(logging.DEBUG)
 
-SUPPORTED_SIMS = ["mdb-nsim", "nsim", "renode", "qemu", "tsim", "armfvp", "xt-sim", "native"]
+SUPPORTED_SIMS = ["mdb-nsim", "nsim", "renode", "qemu", "tsim", "armfvp", "xt-sim", "native", "renode-test"]
 
 class HarnessImporter:
 
@@ -66,6 +66,7 @@ class Handler:
         self.binary = None
         self.pid_fn = None
         self.call_make_run = True
+        self.call_renode_test = False
 
         self.name = instance.name
         self.instance = instance
@@ -157,6 +158,7 @@ class Handler:
 
 
 class BinaryHandler(Handler):
+
     def __init__(self, instance, type_str):
         """Constructor
 
@@ -230,6 +232,8 @@ class BinaryHandler(Handler):
 
         if self.call_make_run:
             command = [self.generator_cmd, "run"]
+        elif self.call_renode_test:
+            command = [self.generator_cmd, "run_renode_test"]
         elif self.call_west_flash:
             command = ["west", "flash", "--skip-rebuild", "-d", self.build_dir]
         else:
@@ -267,6 +271,26 @@ class BinaryHandler(Handler):
         if self.options.enable_ubsan:
             env["UBSAN_OPTIONS"] = "log_path=stdout:halt_on_error=1:" + \
                                   env.get("UBSAN_OPTIONS", "")
+
+        if self.call_renode_test:
+            with subprocess.Popen(command, stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT, cwd=self.build_dir, env=env) as cmake_proc:
+                out, _ = cmake_proc.communicate()
+
+                self.instance.execution_time = time.time() - start_time
+
+                if cmake_proc.returncode == 0:
+                    self.instance.status = "passed"
+                else:
+                    logger.error("Renode robot test failure: %s for %s" %
+                                 (self.sourcedir, self.instance.platform.name))
+                    self.instance.status = "failed"
+
+                if out:
+                    with open(os.path.join(self.build_dir, self.log), "wt") as log:
+                        log_msg = out.decode(sys.getdefaultencoding())
+                        log.write(log_msg)
+                return
 
         with subprocess.Popen(command, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, cwd=self.build_dir, env=env) as proc:
@@ -326,10 +350,16 @@ class SimulationHandler(BinaryHandler):
 
         if type_str == 'renode':
             self.pid_fn = os.path.join(instance.build_dir, "renode.pid")
+            if instance.testsuite.run_robot_tests:
+                self.call_make_run = False
+                self.call_renode_test = True
+            else:
+                self.pid_fn = os.path.join(instance.build_dir, "renode.pid")
         elif type_str == 'native':
             self.call_make_run = False
             self.binary = os.path.join(instance.build_dir, "zephyr", "zephyr.exe")
             self.ready = True
+
 
 class DeviceHandler(Handler):
 
