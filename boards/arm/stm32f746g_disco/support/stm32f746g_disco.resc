@@ -1,0 +1,16 @@
+:name: STM32F746G-DISCO
+:description: This script is prepared to run Zephyr on a STM32F746G-DISCOVERY ARM board.
+
+$name?="STM32F746"
+
+using sysbus
+mach create $name
+machine LoadPlatformDescription @platforms/boards/stm32f7_discovery-bb.repl
+
+showAnalyzer usart1
+
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+runMacro $reset

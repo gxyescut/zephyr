@@ -8,6 +8,7 @@ toolchain:
   - xtools
 ram: 256
 flash: 1024
+simulation: renode
 supported:
   - arduino_i2c
   - netif:eth
