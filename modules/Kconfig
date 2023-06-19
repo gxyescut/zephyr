@@ -14,6 +14,7 @@ osource "$(KCONFIG_BINARY_DIR)/Kconfig.modules"
 
 comment "Optional modules. Make sure they're installed, via the project manifest."
 
+source "modules/Kconfig.ambiq"
 source "modules/Kconfig.altera"
 source "modules/Kconfig.atmel"
 source "modules/Kconfig.cmsis"
