@@ -138,6 +138,11 @@ manifest:
       path: modules/hal/altera
       groups:
         - hal
+    - name: hal_ambiq
+      revision: 655e5840afbb6060921cb8b15345ccd64cb599b5
+      path: modules/hal/ambiq
+      groups:
+        - hal
     - name: hal_atmel
       revision: 5ab43007eda3f380c125f957f03638d2e8d1144d
       path: modules/hal/atmel
