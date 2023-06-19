@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Copyright (c) 2023 Antmicro <www.antmicro.com>
+
+config AMBIQ_STIMER_TIMER
+	bool "Ambiq STIMER system clock driver"
+	default y
+	depends on DT_HAS_AMBIQ_STIMER_ENABLED
+	depends on HAS_AMBIQ_HAL
+	select TICKLESS_CAPABLE
+	select AMBIQ_HAL_USE_STIMER
+	help
+	  If you enable this, STIMER will be used to provide hw_cycles and
+	  kernel ticks instead of Cortex-M SysTick.
+
+	  If unsure, say 'N'.
