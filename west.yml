@@ -23,6 +23,8 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: babblesim
       url-base: https://github.com/BabbleSim
+    - name: antmicro
+      url-base: https://github.com/antmicro
 
   group-filter: [-babblesim]
 
@@ -139,6 +141,7 @@ manifest:
       groups:
         - hal
     - name: hal_ambiq
+      remote: antmicro
       revision: 655e5840afbb6060921cb8b15345ccd64cb599b5
       path: modules/hal/ambiq
       groups:
