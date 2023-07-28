@@ -27,6 +27,7 @@
 /* delay between greetings (in ms) */
 #define SLEEPTIME 500
 
+int test_exception_demo();
 
 /*
  * @param my_name      thread identification string
@@ -59,6 +60,7 @@ void helloLoop(const char *my_name,
 			printk("%s: Hello World from cpu %d on %s!\n",
 				tname, cpu, CONFIG_BOARD);
 		}
+		test_exception_demo();
 
 		/* wait a while, then let other thread have a turn */
 		k_busy_wait(100000);
