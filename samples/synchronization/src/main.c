@@ -19,7 +19,7 @@
 #define PIN_THREADS (IS_ENABLED(CONFIG_SMP) && IS_ENABLED(CONFIG_SCHED_CPU_MASK))
 
 /* size of stack area used by each thread */
-#define STACKSIZE 1024
+#define STACKSIZE 2800
 
 /* scheduling priority used by each thread */
 #define PRIORITY 7
