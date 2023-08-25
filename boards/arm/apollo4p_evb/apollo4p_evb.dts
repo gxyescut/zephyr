@@ -21,6 +21,7 @@
 		led2 = &led2;
 		sw0 = &button0;
 		sw1 = &button1;
+		bleirq = &bleirq;
 	};
 
 	leds {
@@ -36,6 +37,10 @@
 		led2: led_2 {
 			gpios = <&gpiod 1 GPIO_ACTIVE_LOW>;
 			label = "LED 2";
+		};
+		bleirq: ble_irq {
+		    gpios = <&gpioc 9 GPIO_ACTIVE_LOW>;
+		    label = "BLE IRQ";
 		};
 	};
 	buttons {
