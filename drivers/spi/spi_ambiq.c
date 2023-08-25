@@ -121,6 +121,7 @@ static int spi_config(const struct device *dev, const struct spi_config *config)
 	return ret;
 }
 
+#if 0
 static int spi_ambiq_xfer(const struct device *dev, const struct spi_config *config)
 {
 	struct spi_ambiq_data *data = dev->data;
@@ -161,6 +162,62 @@ static int spi_ambiq_xfer(const struct device *dev, const struct spi_config *con
 
 	return ret;
 }
+#else
+static int spi_ambiq_xfer(const struct device *dev, const struct spi_config *config)
+{
+	struct spi_ambiq_data *data = dev->data;
+	struct spi_context *ctx = &data->ctx;
+	int ret = 0;
+
+	am_hal_iom_transfer_t trans = {0};
+	uint8_t *buf3;
+
+    if (ctx->tx_len)
+	{
+		trans.ui64Instr = *ctx->tx_buf;
+		trans.ui32InstrLen = 1;
+		spi_context_update_tx(ctx, 1, 1);
+		if (ctx->tx_buf != NULL)
+		{
+			trans.eDirection = AM_HAL_IOM_TX;
+			trans.bContinue = false;
+			trans.ui32NumBytes = ctx->tx_len;
+			trans.pui32TxBuffer = (uint32_t *)ctx->tx_buf;
+			ret = am_hal_iom_blocking_transfer(data->IOMHandle, &trans);
+			spi_context_update_tx(ctx, 1, ctx->tx_len);		
+		}
+		else if (ctx->rx_buf != NULL)
+		{
+			trans.eDirection = AM_HAL_IOM_RX;
+			trans.bContinue = true;
+			buf3 = (uint8_t *)malloc(sizeof(uint8_t) * ctx->rx_len);
+			trans.pui32RxBuffer = (uint32_t *)&buf3;
+			trans.ui32NumBytes = ctx->rx_len;
+			ret = am_hal_iom_blocking_transfer(data->IOMHandle, &trans);
+			memcpy(ctx->rx_buf, &buf3, (ctx->rx_len * sizeof(uint8_t)));
+			spi_context_update_rx(ctx, 1, ctx->rx_len);
+			free(buf3);
+			buf3 = NULL;
+		}
+	}
+	else
+    {
+		trans.ui64Instr = 0;
+		trans.ui32InstrLen = 0;
+		trans.eDirection = AM_HAL_IOM_RX;
+        trans.bContinue = false;
+		buf3 = (uint8_t *)malloc(sizeof(uint8_t) * ctx->rx_len);
+		trans.pui32RxBuffer = (uint32_t *)&buf3;
+		trans.ui32NumBytes = ctx->rx_len;
+		ret = am_hal_iom_blocking_transfer(data->IOMHandle, &trans);
+		memcpy(ctx->rx_buf, &buf3, (ctx->rx_len * sizeof(uint8_t)));
+	}
+
+	spi_context_complete(ctx, dev, 0);
+
+	return ret;
+}
+#endif
 
 static int spi_ambiq_transceive(const struct device *dev, const struct spi_config *config,
 				const struct spi_buf_set *tx_bufs,
@@ -169,11 +226,13 @@ static int spi_ambiq_transceive(const struct device *dev, const struct spi_confi
 	struct spi_ambiq_data *data = dev->data;
 	int ret;
 
+#if 0
 	ret = spi_config(dev, config);
 
 	if (ret) {
 		return ret;
 	}
+#endif
 
 	if (!tx_bufs && !rx_bufs) {
 		return 0;
@@ -215,6 +274,12 @@ static int spi_ambiq_init(const struct device *dev)
 	ret = cfg->pwr_func();
 
 	ret = pinctrl_apply_state(cfg->pcfg, PINCTRL_STATE_DEFAULT);
+
+	struct spi_config config = {0};
+	config.frequency = 1000000;
+	config.operation = SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_WORD_SET(8);
+
+	ret = spi_config(dev, &config);
 
 	return ret;
 }
