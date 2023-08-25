@@ -104,7 +104,12 @@ static int spi_config(const struct device *dev, const struct spi_config *config)
 		return -ENOTSUP;
 	}
 
-	data->iom_cfg.ui32ClockFreq = cfg->clock_freq;
+    // TODO: It's most likely the application layer always use spi_config.frequency
+	// to configure the SPI clock. It may cause confusion and unexpected clock
+	// setting to define clock_freq for spi_ambiq_config and configure the clock
+	// here. So, which one should be used here??
+	// data->iom_cfg.ui32ClockFreq = cfg->clock_freq;
+	data->iom_cfg.ui32ClockFreq = config->frequency;
 
 	/* Disable IOM instance as it cannot be configured when enabled*/
 	ret = am_hal_iom_disable(data->IOMHandle);
