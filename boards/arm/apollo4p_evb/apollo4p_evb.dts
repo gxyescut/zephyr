@@ -73,8 +73,8 @@
 	status = "okay";
 };
 
-&spi1 {
-	pinctrl-0 = <&spi1_default>;
+&spi2 {
+	pinctrl-0 = <&spi2_default>;
 	pinctrl-names = "default";
 	status = "okay";
 };
