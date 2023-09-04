@@ -77,6 +77,15 @@
 	pinctrl-0 = <&spi2_default>;
 	pinctrl-names = "default";
 	status = "okay";
+    clock-frequency = <8000000>;
+
+	bt-hci@0 {
+		compatible = "ambiq,bt-hci-spi";
+		irq-gpios = <&gpioc 9 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpiob 25 GPIO_ACTIVE_HIGH>;
+		clkreq-gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
+		cs-gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &gpioa {
