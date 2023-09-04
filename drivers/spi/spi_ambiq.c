@@ -130,33 +130,47 @@ static int spi_ambiq_xfer(const struct device *dev, const struct spi_config *con
 	int ret = 0;
 
 	am_hal_iom_transfer_t trans = {0};
-	uint8_t *buf3;
+	uint8_t *buf3 = NULL;
 
-	trans.eDirection = AM_HAL_IOM_FULLDUPLEX;
-
-	uint16_t cmd = *ctx->tx_buf;
-
-	trans.ui32InstrLen = ctx->tx_len;
-	spi_context_update_tx(ctx, 1, 1);
-	cmd = __bswap_16(cmd | *ctx->tx_buf << 8);
-	trans.ui64Instr = cmd;
-
-	if (ctx->rx_buf != NULL) {
-		trans.pui32TxBuffer = (uint32_t *)ctx->tx_buf;
-		spi_context_update_rx(ctx, 1, ctx->rx_len);
-		buf3 = (uint8_t *)malloc(sizeof(uint8_t) * ctx->rx_len);
-		trans.ui32NumBytes = ctx->rx_len;
-		trans.pui32RxBuffer = (uint32_t *)&buf3;
-		ret = am_hal_iom_spi_blocking_fullduplex(data->IOMHandle, &trans);
-
-		memcpy(ctx->rx_buf, &buf3, (ctx->rx_len * sizeof(uint8_t)));
-
-	} else if (ctx->tx_buf != NULL) {
+    if (ctx->tx_len)
+	{
+		trans.ui64Instr = *ctx->tx_buf;
+		trans.ui32InstrLen = 1;
 		spi_context_update_tx(ctx, 1, 1);
-		trans.ui32NumBytes = ctx->tx_len;
-		trans.pui32TxBuffer = (uint32_t *)ctx->tx_buf;
-		trans.pui32RxBuffer = (uint32_t *)ctx->tx_buf;
-		ret = am_hal_iom_spi_blocking_fullduplex(data->IOMHandle, &trans);
+		if (ctx->tx_buf != NULL)
+		{
+			trans.eDirection = AM_HAL_IOM_TX;
+			trans.bContinue = false;
+			trans.ui32NumBytes = ctx->tx_len;
+			trans.pui32TxBuffer = (uint32_t *)ctx->tx_buf;
+			ret = am_hal_iom_blocking_transfer(data->IOMHandle, &trans);
+		}
+		else if (ctx->rx_buf != NULL)
+		{
+			trans.eDirection = AM_HAL_IOM_RX;
+			trans.bContinue = true;
+			buf3 = (uint8_t *)malloc(sizeof(uint8_t) * ctx->rx_len);
+			trans.pui32RxBuffer = (uint32_t *)buf3;
+			trans.ui32NumBytes = ctx->rx_len;
+			ret = am_hal_iom_blocking_transfer(data->IOMHandle, &trans);
+			memcpy(ctx->rx_buf, buf3, (ctx->rx_len * sizeof(uint8_t)));
+			free(buf3);
+			buf3 = NULL;
+		}
+	}
+	else
+    {
+		trans.ui64Instr = 0;
+		trans.ui32InstrLen = 0;
+		trans.eDirection = AM_HAL_IOM_RX;
+        trans.bContinue = false;
+		buf3 = (uint8_t *)malloc(sizeof(uint8_t) * ctx->rx_len);
+		trans.pui32RxBuffer = (uint32_t *)buf3;
+		trans.ui32NumBytes = ctx->rx_len;
+		ret = am_hal_iom_blocking_transfer(data->IOMHandle, &trans);
+		memcpy(ctx->rx_buf, buf3, (ctx->rx_len * sizeof(uint8_t)));
+		free(buf3);
+		buf3 = NULL;
 	}
 
 	spi_context_complete(ctx, dev, 0);
