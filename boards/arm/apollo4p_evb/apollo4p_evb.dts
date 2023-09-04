@@ -74,7 +74,7 @@
 };
 
 &spi2 {
-	pinctrl-0 = <&spi2_default>;
+	pinctrl-0 = <&spi_hci>;
 	pinctrl-names = "default";
 	status = "okay";
     clock-frequency = <8000000>;
