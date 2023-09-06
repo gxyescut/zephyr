@@ -73,7 +73,7 @@
 	status = "okay";
 };
 
-&spi2 {
+&spi4 {
 	pinctrl-0 = <&spi_hci>;
 	pinctrl-names = "default";
 	status = "okay";
@@ -81,10 +81,10 @@
 
 	bt-hci@0 {
 		compatible = "ambiq,bt-hci-spi";
-		irq-gpios = <&gpioc 9 GPIO_ACTIVE_HIGH>;
-		reset-gpios = <&gpiob 25 GPIO_ACTIVE_HIGH>;
-		clkreq-gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
-		cs-gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+		irq-gpios = <&gpiob 21 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpiob 23 GPIO_ACTIVE_HIGH>;
+		clkreq-gpios = <&gpiob 20 GPIO_ACTIVE_HIGH>;
+		cs-gpios = <&gpiob 22 GPIO_ACTIVE_HIGH>;
 	};
 };
 

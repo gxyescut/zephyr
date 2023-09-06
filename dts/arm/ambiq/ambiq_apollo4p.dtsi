@@ -146,10 +146,10 @@
 			status = "disabled";
 			ambiq,pwrcfg = <&pwrcfg 0x4 0x10>;
 		};
-		i2c4: i2c@40054000 {
-			compatible = "ambiq,i2c";
+		spi4: spi@40054000 {
+			compatible = "ambiq,spi";
 			reg = <0x40054000 0x1000>;
-			clock-frequency = <I2C_BITRATE_STANDARD>;
+			clock-frequency = <1000000>;
 			#address-cells = <1>;
 			#size-cells = <0>;
 			interrupts = <10 0>;

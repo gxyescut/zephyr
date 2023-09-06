@@ -9,7 +9,7 @@
 &pinctrl {
 	uart0_default: uart0_default {
 		group1 {
-			pinmux = <UART0TX_P60>;
+			pinmux = <UART0TX_P12>;
 		};
 		group2 {
 			pinmux = <UART0RX_P47>;
@@ -163,12 +163,12 @@
 	};
 	spi_hci: spi_hci {
 		group1 {
-			pinmux = <M2SCK_P25>, <M2MISO_P27>, <M2MOSI_P26>;
+			pinmux = <M4SCK_P34>, <M4MISO_P36>, <M4MOSI_P35>;
 		};
 		group2 {
-			pinmux = <NCE72_P72>;
+			pinmux = <NCE54_P54>;
 			drive-push-pull;
-			ambiq,iom-nce-module = <8>;
+			ambiq,iom-nce-module = <16>;
 		};
 	};
 };

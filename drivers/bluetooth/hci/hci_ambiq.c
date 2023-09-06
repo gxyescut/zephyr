@@ -25,7 +25,7 @@ LOG_MODULE_REGISTER(bt_driver);
 #include <am_mcu_apollo.h>
 #include <am_devices_ble_ctrl.h>
 
-#define SPI_DEV_NODE    DT_NODELABEL(spi2)
+#define SPI_DEV_NODE    DT_NODELABEL(spi4)
 #define HCI_SPI_NODE    DT_COMPAT_GET_ANY_STATUS_OKAY(ambiq_bt_hci_spi)
 
 #define HCI_CMD			0x01
@@ -69,7 +69,7 @@ static uint8_t g_nvds_data[HCI_VSC_UPDATE_NVDS_CFG_CMD_LENGTH]=
 
 static const struct gpio_dt_spec irq_gpio = GPIO_DT_SPEC_GET(HCI_SPI_NODE, irq_gpios);
 static const struct gpio_dt_spec rst_gpio = GPIO_DT_SPEC_GET(HCI_SPI_NODE, reset_gpios);
-const struct gpio_dt_spec cs_gpio = GPIO_DT_SPEC_GET(HCI_SPI_NODE, cs_gpios);
+static const struct gpio_dt_spec cs_gpio = GPIO_DT_SPEC_GET(HCI_SPI_NODE, cs_gpios);
 static const struct gpio_dt_spec clkreq_gpio = GPIO_DT_SPEC_GET(HCI_SPI_NODE, clkreq_gpios);
 
 static struct gpio_callback	irq_gpio_cb;
@@ -165,15 +165,18 @@ static void bt_clkreq_isr(const struct device *unused1,
 		       struct gpio_callback *unused2,
 		       uint32_t unused3)
 {
-	LOG_DBG("");
-	if (clkreq_pin_status()) 
+	if (clkreq_pin_status())
 	{
 		// TODO: enable XTAL32MHz
+		printk("on\n");
+		// am_device_ble_ctrl_xo32m_on();
         gpio_pin_interrupt_configure_dt(&clkreq_gpio, GPIO_INT_EDGE_FALLING);
 	} 
 	else
 	{
 		// TODO: disable XTAL32MHz
+		printk("off\n");
+		// am_device_ble_ctrl_xo32m_off();
 	    gpio_pin_interrupt_configure_dt(&clkreq_gpio, GPIO_INT_EDGE_RISING);
 	}
 }
