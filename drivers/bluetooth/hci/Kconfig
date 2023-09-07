@@ -105,7 +105,7 @@ config BT_NO_DRIVER
 
 config BT_AMBIQ_HCI
 	bool "AMBIQ SPI HCI"
-	depends on BT_AMBIQ
+	depends on SPI
 	select BT_HCI_SETUP
 	help
 	  Supports Ambiq Bluetooth ICs using SPI as the communication protocol.
