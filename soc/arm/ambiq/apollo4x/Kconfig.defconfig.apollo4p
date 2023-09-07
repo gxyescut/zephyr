@@ -15,4 +15,8 @@ config SRAM_NC_SIZE
 config SRAM_NC_BASE_ADDRESS
 	default $(dt_node_reg_addr_hex,$(DT_NODE_SRAM),1)
 
+config BT_AMBIQ
+	bool "Ambiq Bluetooth"
+	default y
+
 endif # SOC_APOLLO4P
