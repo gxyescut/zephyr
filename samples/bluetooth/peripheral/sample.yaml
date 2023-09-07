@@ -19,3 +19,10 @@ tests:
     extra_args: SHIELD=x_nucleo_idb05a1
     integration_platforms:
       - nucleo_l4r5zi
+  sample.bluetooth.peripheral.ambiq:
+    harness: bluetooth
+    platform_allow: 
+      - apollo4p_evb
+    extra_args: OVERLAY_CONFIG="ambiq.conf"
+    integration_platforms:
+      - apollo4p_evb
