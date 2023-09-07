@@ -77,8 +77,10 @@ static struct gpio_callback	clkreq_gpio_cb;
 
 static K_SEM_DEFINE(sem_irq, 0, 1);
 static K_SEM_DEFINE(sem_spi_available, 1, 1);
+#if defined(CONFIG_BT_HCI_SETUP)
 static K_SEM_DEFINE(sem_initialised, 0, 1);
 static bool g_preInitialising = false;
+#endif /* defined(CONFIG_BT_HCI_SETUP) */
 
 const struct device *spi_dev = DEVICE_DT_GET(SPI_DEV_NODE);
 static struct spi_config spi_cfg = 
@@ -87,24 +89,6 @@ static struct spi_config spi_cfg =
 };
 static K_KERNEL_STACK_DEFINE(spi_rx_stack, CONFIG_BT_DRV_RX_STACK_SIZE);
 static struct k_thread spi_rx_thread_data;
-
-#if defined(CONFIG_BT_HCI_DRIVER_LOG_LEVEL_DBG)
-#include <zephyr/sys/printk.h>
-static inline void spi_dump_message(const uint8_t *pre, uint8_t *buf,
-				    uint16_t size)
-{
-	uint8_t c;
-	printk("%s : ");
-	for (uint16_t i = 0; i < size; i++) {
-		c = buf[i];
-		printk("%02X ", c);
-	}
-	printk("\n");
-}
-#else
-static inline
-void spi_dump_message(const uint8_t *pre, uint8_t *buf, uint16_t size) {}
-#endif
 
 static struct spi_buf spi_tx_buf;
 static struct spi_buf spi_rx_buf;
@@ -157,7 +141,6 @@ static void bt_packet_irq_isr(const struct device *unused1,
 		       struct gpio_callback *unused2,
 		       uint32_t unused3)
 {
-	LOG_DBG("");
 	k_sem_give(&sem_irq);
 }
 
@@ -167,47 +150,23 @@ static void bt_clkreq_isr(const struct device *unused1,
 {
 	if (clkreq_pin_status())
 	{
-		// TODO: enable XTAL32MHz
-		printk("on\n");
-		// am_device_ble_ctrl_xo32m_on();
-        gpio_pin_interrupt_configure_dt(&clkreq_gpio, GPIO_INT_EDGE_FALLING);
+		/* Enable XTAL32MHz */
+		am_device_ble_ctrl_xo32m_on();
+		gpio_pin_interrupt_configure_dt(&clkreq_gpio, GPIO_INT_EDGE_FALLING);
 	} 
 	else
 	{
-		// TODO: disable XTAL32MHz
-		printk("off\n");
-		// am_device_ble_ctrl_xo32m_off();
-	    gpio_pin_interrupt_configure_dt(&clkreq_gpio, GPIO_INT_EDGE_RISING);
+		/* Disable XTAL32MHz */
+		am_device_ble_ctrl_xo32m_off();
+		gpio_pin_interrupt_configure_dt(&clkreq_gpio, GPIO_INT_EDGE_RISING);
 	}
 }
 
 static void configure_cs(void)
 {
-	/* Configure CS pin as to SPI CS function */
-#if 0
-	am_hal_gpio_pincfg_t g_AM_BLE_SPI_CS =
-	{
-		.GP.cfg_b.uFuncSel             = AM_HAL_PIN_72_NCE72,
-		.GP.cfg_b.eGPInput             = AM_HAL_GPIO_PIN_INPUT_NONE,
-		.GP.cfg_b.eGPRdZero            = AM_HAL_GPIO_PIN_RDZERO_READPIN,
-		.GP.cfg_b.eIntDir              = AM_HAL_GPIO_PIN_INTDIR_LO2HI,
-		.GP.cfg_b.eGPOutCfg            = AM_HAL_GPIO_PIN_OUTCFG_PUSHPULL,
-		.GP.cfg_b.eDriveStrength       = AM_HAL_GPIO_PIN_DRIVESTRENGTH_0P5X,
-		.GP.cfg_b.uSlewRate            = 0,
-		.GP.cfg_b.ePullup              = AM_HAL_GPIO_PIN_PULLUP_NONE,
-		.GP.cfg_b.uNCE                 = AM_HAL_GPIO_NCE_IOM2CE0,
-		.GP.cfg_b.eCEpol               = AM_HAL_GPIO_PIN_CEPOL_ACTIVELOW,
-		.GP.cfg_b.uRsvd_0              = 0,
-		.GP.cfg_b.ePowerSw             = AM_HAL_GPIO_PIN_POWERSW_NONE,
-		.GP.cfg_b.eForceInputEn        = AM_HAL_GPIO_PIN_FORCEEN_NONE,
-		.GP.cfg_b.eForceOutputEn       = AM_HAL_GPIO_PIN_FORCEEN_NONE,
-		.GP.cfg_b.uRsvd_1              = 0,
-	};
-	am_hal_gpio_pinconfig(72, g_AM_BLE_SPI_CS);
-#else
+	/* Configure CS GPIO to SPI CS function */
 	PINCTRL_DT_DEFINE(SPI_DEV_NODE);
 	pinctrl_apply_state(PINCTRL_DT_DEV_CONFIG_GET(SPI_DEV_NODE), PINCTRL_STATE_DEFAULT);
-#endif
 }
 
 static void release_cs(void)
@@ -264,7 +223,6 @@ static void bt_spi_rx_thread(void)
 			/* Free the SPI bus as soon as possible */
 			k_sem_give(&sem_spi_available);
 
-			spi_dump_message("HCI RX: ", g_hciRxMsg, size);
 #if defined(CONFIG_BT_HCI_SETUP)
 			if (g_preInitialising) {
 				am_devices_ble_ctrl_handshake_recv(&g_hciRxMsg[0]);
@@ -352,7 +310,6 @@ int spi_blocking_send(uint8_t *data, uint32_t len)
 		} else {
 			/* Transmit the message */
 			ret = bt_spi_transceive(data, len, NULL, 0);
-			spi_dump_message("HCI TX: ", data, len);
 			if (ret) {
 				LOG_ERR("Error %d", ret);
 			}
@@ -472,13 +429,21 @@ static int bt_set_nvds(void)
 
 static int bt_spi_setup(void)
 {
+	int ret = 0;
+	/* Check if BLE Controller firmware update is needed */
 	am_devices_ble_ctrl_fw_update_init();
 	am_devices_ble_ctrl_fw_update();
 	g_preInitialising = true;
+
 	/* Device will let us know when it's ready */
 	k_sem_take(&sem_initialised, K_FOREVER);
 
-    return bt_set_nvds();
+	/* Set the NVDS parameters to BLE Controller*/
+    ret = bt_set_nvds();
+	/* Give some time to make NVDS take effect in Controller */
+	k_sleep(K_MSEC(2));
+
+	return ret;
 }
 #endif /* defined(CONFIG_BT_HCI_SETUP) */
 
