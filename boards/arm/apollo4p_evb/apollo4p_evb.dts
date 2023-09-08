@@ -88,6 +88,18 @@
 	};
 };
 
+&xtal32mhz {
+	pinctrl-0 = <&xtal32mhz_default>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&xtal32khz {
+	pinctrl-0 = <&xtal32khz_default>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
 &gpioa {
 	status = "okay";
 };
