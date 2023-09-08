@@ -17,6 +17,8 @@
 
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/drivers/bluetooth/hci_driver.h>
+#include <zephyr/drivers/clock_control.h>
+#include <zephyr/drivers/clock_control/clock_control_ambiq.h>
 
 #define LOG_LEVEL CONFIG_BT_HCI_DRIVER_LOG_LEVEL
 #include <zephyr/logging/log.h>
@@ -27,6 +29,8 @@ LOG_MODULE_REGISTER(bt_driver);
 
 #define SPI_DEV_NODE    DT_NODELABEL(spi4)
 #define HCI_SPI_NODE    DT_COMPAT_GET_ANY_STATUS_OKAY(ambiq_bt_hci_spi)
+#define CLK_32M_NODE    DT_NODELABEL(xtal32mhz)
+#define CLK_32K_NODE    DT_NODELABEL(xtal32khz)
 
 #define HCI_CMD			0x01
 #define HCI_ACL			0x02
@@ -101,6 +105,9 @@ static const struct spi_buf_set spi_rx = {
 	.count = 1
 };
 
+const struct device *clk32m_dev = DEVICE_DT_GET(CLK_32M_NODE);
+const struct device *clk32k_dev = DEVICE_DT_GET(CLK_32K_NODE);
+
 static inline int bt_spi_transceive(void *tx, uint32_t tx_len,
 				    void *rx, uint32_t rx_len)
 {
@@ -151,13 +158,15 @@ static void bt_clkreq_isr(const struct device *unused1,
 	if (clkreq_pin_status())
 	{
 		/* Enable XTAL32MHz */
-		am_device_ble_ctrl_xo32m_on();
+		// am_device_ble_ctrl_xo32m_on();
+		clock_control_on(clk32m_dev, (clock_control_subsys_t)CLOCK_CONTROL_AMBIQ_TYPE_HFXTAL_BLE);
 		gpio_pin_interrupt_configure_dt(&clkreq_gpio, GPIO_INT_EDGE_FALLING);
 	} 
 	else
 	{
 		/* Disable XTAL32MHz */
-		am_device_ble_ctrl_xo32m_off();
+		// am_device_ble_ctrl_xo32m_off();
+		clock_control_off(clk32m_dev, (clock_control_subsys_t)CLOCK_CONTROL_AMBIQ_TYPE_HFXTAL_BLE);
 		gpio_pin_interrupt_configure_dt(&clkreq_gpio, GPIO_INT_EDGE_RISING);
 	}
 }
@@ -430,6 +439,10 @@ static int bt_set_nvds(void)
 static int bt_spi_setup(void)
 {
 	int ret = 0;
+
+	/* Enable XTAL32kHz for Controller */
+	clock_control_on(clk32k_dev, (clock_control_subsys_t)CLOCK_CONTROL_AMBIQ_TYPE_LFXTAL);
+
 	/* Check if BLE Controller firmware update is needed */
 	am_devices_ble_ctrl_fw_update_init();
 	am_devices_ble_ctrl_fw_update();
