@@ -43,3 +43,11 @@
 	status = "okay";
 };
 
+&iom1 {
+	compatible = "ambiq,spi";
+	pinctrl-0 = <&spi1_default>;
+	pinctrl-names = "default";
+	clock-frequency = <1000000>;
+	status = "okay";
+};
+
