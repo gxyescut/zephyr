@@ -1,0 +1,23 @@
+# Copyright (c) 2023 Ambiq Micro Inc. <www.ambiq.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: Ambiq Clock Control
+
+compatible: "ambiq,clock"
+
+include: [clock-controller.yaml, pinctrl-device.yaml, base.yaml]
+
+properties:
+  clock-frequency:
+    type: int
+    description: output clock frequency (Hz)
+    required: true
+
+  pinctrl-0:
+    required: true
+
+  pinctrl-names:
+    required: true
+
+  "#clock-cells":
+    const: 1
