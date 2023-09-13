@@ -200,4 +200,17 @@
 			ambiq,iom-nce-module = <36>;
 		};
 	};
+
+	xtal32mhz_default: xtal32mhz_default {
+		group1 {
+			pinmux = <CLKOUT_32M_P46>;
+			drive-strength = "0.1";
+		};
+	};
+	xtal32khz_default: xtal32khz_default {
+		group1 {
+			pinmux = <XT32KHZ_P4>;
+			drive-strength = "0.1";
+		};
+	};
 };
